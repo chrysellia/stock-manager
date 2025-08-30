@@ -240,11 +240,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
                 Container(

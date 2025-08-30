@@ -20,7 +20,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
   late TextEditingController _priceController;
   late TextEditingController _quantityController;
   late TextEditingController _categoryController;
-  late TextEditingController _barcodeController;
+  // late TextEditingController _barcodeController;
   late TextEditingController _purchasePriceController;
   late TextEditingController _alertThresholdController;
 
@@ -48,7 +48,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
         TextEditingController(text: product?.quantity.toString() ?? '0');
     _categoryController = TextEditingController(
         text: product?.category.isNotEmpty == true ? product!.category : null);
-    _barcodeController = TextEditingController(text: product?.barcode ?? '');
+    // _barcodeController = TextEditingController(text: product?.barcode ?? '');
     _purchasePriceController = TextEditingController(
         text: product?.purchasePrice?.toStringAsFixed(2) ?? '');
     _alertThresholdController =
@@ -63,7 +63,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     _priceController.dispose();
     _quantityController.dispose();
     _categoryController.dispose();
-    _barcodeController.dispose();
+    // _barcodeController.dispose();
     _purchasePriceController.dispose();
     _alertThresholdController.dispose();
     super.dispose();
@@ -100,7 +100,12 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                       children: [
                         Icon(Icons.add_a_photo, size: 30),
                         SizedBox(height: 8),
-                        Text('Ajouter une image'),
+                        Flexible(
+                          child: Text(
+                            'Ajouter une image',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -200,16 +205,16 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                 ),
                 const SizedBox(height: 12),
 
-                // Code-barres
-                TextFormField(
-                  controller: _barcodeController,
-                  decoration: const InputDecoration(
-                    labelText: 'Code-barres',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 12),
+                // // Code-barres
+                // TextFormField(
+                //   controller: _barcodeController,
+                //   decoration: const InputDecoration(
+                //     labelText: 'Code-barres',
+                //     border: OutlineInputBorder(),
+                //   ),
+                //   keyboardType: TextInputType.number,
+                // ),
+                // const SizedBox(height: 12),
 
                 // Prix d'achat et seuil d'alerte
                 Row(
@@ -290,9 +295,9 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
         price: double.parse(_priceController.text.replaceAll(',', '.')),
         quantity: int.parse(_quantityController.text),
         category: _selectedCategory ?? _categories.first,
-        barcode: _barcodeController.text.trim().isNotEmpty
-            ? _barcodeController.text.trim()
-            : null,
+        // barcode: _barcodeController.text.trim().isNotEmpty
+        //     ? _barcodeController.text.trim()
+        //     : null,
         purchasePrice: _purchasePriceController.text.isNotEmpty
             ? double.parse(_purchasePriceController.text.replaceAll(',', '.'))
             : null,

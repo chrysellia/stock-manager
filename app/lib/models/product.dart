@@ -7,7 +7,7 @@ class Product extends BaseModel {
   final int quantity;
   final String category;
   final String? imageUrl;
-  final String? barcode;
+  // final String? barcode;
   final double? purchasePrice;
   final String? supplierId;
   final int alertThreshold;
@@ -20,7 +20,7 @@ class Product extends BaseModel {
     this.quantity = 0,
     this.category = 'Non catégorisé',
     this.imageUrl,
-    this.barcode,
+    // this.barcode,
     this.purchasePrice,
     this.supplierId,
     this.alertThreshold = 10,
@@ -42,7 +42,7 @@ class Product extends BaseModel {
       quantity: json['quantity'] ?? 0,
       category: json['category'] ?? 'Non catégorisé',
       imageUrl: json['imageUrl'],
-      barcode: json['barcode'],
+      // barcode: json['barcode'],
       purchasePrice: (json['purchasePrice'] as num?)?.toDouble(),
       supplierId: json['supplierId'],
       alertThreshold: json['alertThreshold'] ?? 10,
@@ -64,7 +64,7 @@ class Product extends BaseModel {
       'quantity': quantity,
       'category': category,
       'imageUrl': imageUrl,
-      'barcode': barcode,
+      // 'barcode': barcode,
       'purchasePrice': purchasePrice,
       'supplierId': supplierId,
       'alertThreshold': alertThreshold,
@@ -95,7 +95,7 @@ class Product extends BaseModel {
       quantity: quantity ?? this.quantity,
       category: category ?? this.category,
       imageUrl: imageUrl ?? this.imageUrl,
-      barcode: barcode ?? this.barcode,
+      // barcode: barcode ?? this.barcode,
       purchasePrice: purchasePrice ?? this.purchasePrice,
       supplierId: supplierId ?? this.supplierId,
       alertThreshold: alertThreshold ?? this.alertThreshold,
