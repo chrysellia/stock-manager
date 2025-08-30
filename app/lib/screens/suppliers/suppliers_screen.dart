@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:gestion_stock_epicerie/models/supplier.dart';
 import 'package:gestion_stock_epicerie/screens/suppliers/supplier_form_screen.dart';
 import 'package:gestion_stock_epicerie/services/supplier_service.dart';
-import 'package:gestion_stock_epicerie/theme/app_theme.dart';
 import 'package:gestion_stock_epicerie/widgets/confirmation_dialog.dart';
 
 class SuppliersScreen extends StatefulWidget {

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gestion_stock_epicerie/models/stock.dart';
 import 'package:gestion_stock_epicerie/services/stock_service.dart';
-import 'package:gestion_stock_epicerie/theme/app_theme.dart';
 import 'package:gestion_stock_epicerie/widgets/stock_movement_dialog.dart';
 
 class StockScreen extends StatefulWidget {

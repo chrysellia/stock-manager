@@ -22,12 +22,10 @@ class AppTheme {
         primary: primaryColor,
         secondary: secondaryColor,
         surface: surfaceColor,
-        background: backgroundColor,
         error: errorColor,
         onPrimary: onPrimary,
         onSecondary: onSecondary,
         onSurface: onBackground,
-        onBackground: onBackground,
         onError: onError,
         brightness: Brightness.light,
       ),
@@ -112,17 +110,14 @@ class AppTheme {
 
   // Thème sombre (optionnel)
   static final ThemeData darkTheme = ThemeData.dark().copyWith(
-    useMaterial3: true,
     colorScheme: const ColorScheme.dark(
       primary: primaryColor,
       secondary: secondaryColor,
       surface: Color(0xFF1E1E1E),
-      background: Color(0xFF121212),
       error: errorColor,
       onPrimary: onPrimary,
       onSecondary: onSecondary,
       onSurface: Colors.white,
-      onBackground: Colors.white,
       onError: onError,
       brightness: Brightness.dark,
     ),

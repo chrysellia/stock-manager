@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gestion_stock_epicerie/routes.dart';
-import 'package:gestion_stock_epicerie/theme/app_theme.dart';
 import 'package:gestion_stock_epicerie/screens/products/products_screen.dart';
 
 class DashboardScreen extends StatefulWidget {

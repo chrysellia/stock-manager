@@ -68,8 +68,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     return products.where((product) {
       return product.name.toLowerCase().contains(lowercaseQuery) ||
           (product.barcode?.toLowerCase().contains(lowercaseQuery) ?? false) ||
-          (product.description?.toLowerCase().contains(lowercaseQuery) ??
-              false);
+          (product.description.toLowerCase().contains(lowercaseQuery) ?? false);
     }).toList();
   }
 

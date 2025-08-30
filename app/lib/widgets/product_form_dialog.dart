@@ -125,7 +125,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
 
                 // Catégorie
                 DropdownButtonFormField<String>(
-                  value: _selectedCategory,
+                  initialValue: _selectedCategory,
                   decoration: const InputDecoration(
                     labelText: 'Catégorie',
                     border: OutlineInputBorder(),
@@ -236,7 +236,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                         decoration: const InputDecoration(
                           labelText: 'Seuil d\'alerte',
                           border: OutlineInputBorder(),
-                          helperText: 'Stock bas',
+                          // helperText: 'Stock bas',
                         ),
                       ),
                     ),

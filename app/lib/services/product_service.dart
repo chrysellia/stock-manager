@@ -30,7 +30,7 @@ class ProductService extends CrudService<Product> {
     return products.where((product) {
       return product.name.toLowerCase().contains(lowerQuery) ||
           (product.barcode?.toLowerCase().contains(lowerQuery) ?? false) ||
-          (product.description?.toLowerCase().contains(lowerQuery) ?? false);
+          (product.description.toLowerCase().contains(lowerQuery) ?? false);
     }).toList();
   }
 

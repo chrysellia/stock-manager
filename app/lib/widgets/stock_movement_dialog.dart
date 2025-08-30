@@ -142,7 +142,7 @@ class _StockMovementDialogState extends State<StockMovementDialog> {
             children: [
               // Type de mouvement
               DropdownButtonFormField<StockMovementType>(
-                value: _movementType,
+                initialValue: _movementType,
                 decoration: const InputDecoration(
                   labelText: 'Type de mouvement',
                   border: OutlineInputBorder(),
