@@ -3,9 +3,9 @@ import 'screens/auth/login_screen.dart';
 import 'screens/dashboard/dashboard_screen.dart';
 import 'screens/products/products_screen.dart';
 import 'screens/customers/customers_screen.dart';
+import 'screens/suppliers/suppliers_screen.dart';
 // Importer les autres écrans au fur et à mesure
 // import 'screens/stock/stock_screen.dart';
-// import 'screens/suppliers/suppliers_screen.dart';
 // import 'screens/invoices/invoices_screen.dart';
 // import 'screens/settings/settings_screen.dart';
 
@@ -32,8 +32,8 @@ class AppRoutes {
       // Décommenter et ajouter les autres routes au fur et à mesure
       // case stock:
       //   return MaterialPageRoute(builder: (_) => const StockScreen());
-      // case suppliers:
-      //   return MaterialPageRoute(builder: (_) => const SuppliersScreen());
+      case suppliers:
+        return MaterialPageRoute(builder: (_) => const SuppliersScreen());
       // case invoices:
       //   return MaterialPageRoute(builder: (_) => const InvoicesScreen());
       case customers:

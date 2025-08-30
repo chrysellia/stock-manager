@@ -303,12 +303,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         'title': 'Fournisseurs',
         'icon': Icons.local_shipping_outlined,
         'color': Colors.green,
-        'onTap': () {
-          // TODO: Implémenter la navigation vers l'écran des fournisseurs
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Fonctionnalité à venir')),
-          );
-        },
+        'onTap': () => Navigator.pushNamed(context, AppRoutes.suppliers),
       },
       {
         'title': 'Factures',
@@ -316,17 +311,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         'color': Colors.purple,
         'onTap': () {
           // TODO: Implémenter la navigation vers l'écran des factures
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Fonctionnalité à venir')),
-          );
-        },
-      },
-      {
-        'title': 'Clients',
-        'icon': Icons.people_outline,
-        'color': Colors.teal,
-        'onTap': () {
-          // TODO: Implémenter la navigation vers l'écran des clients
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Fonctionnalité à venir')),
           );
