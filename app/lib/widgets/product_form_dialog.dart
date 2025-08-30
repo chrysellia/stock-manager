@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:gestion_stock_epicerie/models/product.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ProductFormDialog extends StatefulWidget {
   final Product? product;
@@ -95,19 +98,50 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: Colors.grey[300]!),
                     ),
-                    child: const Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.add_a_photo, size: 30),
-                        SizedBox(height: 8),
-                        Flexible(
-                          child: Text(
-                            'Ajouter une image',
-                            overflow: TextOverflow.ellipsis,
+                    child: _selectedImage == null
+                        ? const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.add_a_photo, size: 30),
+                              SizedBox(height: 8),
+                              Flexible(
+                                child: Text(
+                                  'Ajouter une image',
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          )
+                        : Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.file(
+                                  _selectedImage!,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              Container(
+                                alignment: Alignment.topRight,
+                                padding: const EdgeInsets.all(4),
+                                child: Container(
+                                  decoration: const BoxDecoration(
+                                    color: Colors.black54,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: IconButton(
+                                    icon: const Icon(Icons.close, color: Colors.white, size: 20),
+                                    onPressed: () {
+                                      setState(() {
+                                        _selectedImage = null;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -281,9 +315,49 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     );
   }
 
+  File? _selectedImage;
+  final ImagePicker _picker = ImagePicker();
+
   Future<void> _pickImage() async {
-    // TODO: Implémenter la sélection d'image
-    // Pour l'instant, on ne fait rien
+    final result = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.photo_camera),
+                title: const Text('Prendre une photo'),
+                onTap: () => Navigator.of(context).pop(ImageSource.camera),
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Choisir depuis la galerie'),
+                onTap: () => Navigator.of(context).pop(ImageSource.gallery),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (result != null) {
+      try {
+        final XFile? image = await _picker.pickImage(source: result);
+        if (image != null) {
+          setState(() {
+            _selectedImage = File(image.path);
+          });
+        }
+      } catch (e) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Erreur lors de la sélection de l\'image')),
+        );
+      }
+    }
   }
 
   void _saveProduct() {
