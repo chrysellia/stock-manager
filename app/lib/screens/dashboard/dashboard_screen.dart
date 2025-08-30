@@ -283,6 +283,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         'onTap': () => Navigator.pushNamed(context, AppRoutes.products),
       },
       {
+        'title': 'Clients',
+        'icon': Icons.people_outline,
+        'color': Colors.purple,
+        'onTap': () => Navigator.pushNamed(context, AppRoutes.customers),
+      },
+      {
         'title': 'Stock',
         'icon': Icons.warehouse_outlined,
         'color': Colors.orange,

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/dashboard/dashboard_screen.dart';
 import 'screens/products/products_screen.dart';
+import 'screens/customers/customers_screen.dart';
 // Importer les autres écrans au fur et à mesure
 // import 'screens/stock/stock_screen.dart';
 // import 'screens/suppliers/suppliers_screen.dart';
 // import 'screens/invoices/invoices_screen.dart';
-// import 'screens/customers/customers_screen.dart';
 // import 'screens/settings/settings_screen.dart';
 
 class AppRoutes {
@@ -36,8 +36,8 @@ class AppRoutes {
       //   return MaterialPageRoute(builder: (_) => const SuppliersScreen());
       // case invoices:
       //   return MaterialPageRoute(builder: (_) => const InvoicesScreen());
-      // case customers:
-      //   return MaterialPageRoute(builder: (_) => const CustomersScreen());
+      case customers:
+        return MaterialPageRoute(builder: (_) => const CustomersScreen());
       // case settings:
       //   return MaterialPageRoute(builder: (_) => const SettingsScreen());
       default:
