@@ -38,6 +38,9 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     'Autre',
   ];
 
+  File? _selectedImage;
+  final ImagePicker _picker = ImagePicker();
+  
   @override
   void initState() {
     super.initState();
@@ -51,12 +54,16 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
         TextEditingController(text: product?.quantity.toString() ?? '0');
     _categoryController = TextEditingController(
         text: product?.category.isNotEmpty == true ? product!.category : null);
-    // _barcodeController = TextEditingController(text: product?.barcode ?? '');
     _purchasePriceController = TextEditingController(
         text: product?.purchasePrice?.toStringAsFixed(2) ?? '');
     _alertThresholdController =
         TextEditingController(text: product?.alertThreshold.toString() ?? '10');
     _selectedCategory = product?.category;
+    
+    // If editing a product with an existing image, show it
+    if (product?.imageUrl != null && product!.imageUrl!.isNotEmpty) {
+      _selectedImage = File(product.imageUrl!);
+    }
   }
 
   @override
@@ -315,9 +322,6 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     );
   }
 
-  File? _selectedImage;
-  final ImagePicker _picker = ImagePicker();
-
   Future<void> _pickImage() async {
     final result = await showModalBottomSheet<ImageSource>(
       context: context,
@@ -362,6 +366,15 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
 
   void _saveProduct() {
     if (_formKey.currentState?.validate() ?? false) {
+      // If we're editing an existing product and no new image was selected,
+      // keep the existing image URL
+      String? imageUrl = widget.product?.imageUrl;
+      
+      // If a new image was selected, use its path
+      if (_selectedImage != null) {
+        imageUrl = _selectedImage!.path;
+      }
+      
       final product = Product(
         id: widget.product?.id,
         name: _nameController.text.trim(),
@@ -369,6 +382,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
         price: double.parse(_priceController.text.replaceAll(',', '.')),
         quantity: int.parse(_quantityController.text),
         category: _selectedCategory ?? _categories.first,
+        imageUrl: imageUrl,
         // barcode: _barcodeController.text.trim().isNotEmpty
         //     ? _barcodeController.text.trim()
         //     : null,
