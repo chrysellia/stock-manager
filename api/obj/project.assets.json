@@ -14,11 +14,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\Projects\\Others\\Priscillia\\stock-manager\\PizzaStore\\PizzaStore.csproj",
-      "projectName": "PizzaStore",
-      "projectPath": "E:\\Projects\\Others\\Priscillia\\stock-manager\\PizzaStore\\PizzaStore.csproj",
+      "projectUniqueName": "E:\\Projects\\Others\\Priscillia\\stock-manager\\api\\api.csproj",
+      "projectName": "api",
+      "projectPath": "E:\\Projects\\Others\\Priscillia\\stock-manager\\api\\api.csproj",
       "packagesPath": "C:\\Users\\Yuuri\\.nuget\\packages\\",
-      "outputPath": "E:\\Projects\\Others\\Priscillia\\stock-manager\\PizzaStore\\obj\\",
+      "outputPath": "E:\\Projects\\Others\\Priscillia\\stock-manager\\api\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "D:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
