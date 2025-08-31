@@ -5,15 +5,15 @@ using Microsoft.AspNetCore.Cors;
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure Kestrel
-builder.WebHost.ConfigureKestrel(serverOptions =>
-{
-    serverOptions.ListenAnyIP(5000); // HTTP
-    serverOptions.ListenAnyIP(5001, listenOptions => // HTTPS
-    {
-        // Note: In production, you'll need to configure proper certificates
-        // listenOptions.UseHttps("path/to/certificate.pfx", "certificate-password");
-    });
-});
+// builder.WebHost.ConfigureKestrel(serverOptions =>
+// {
+//     serverOptions.ListenAnyIP(5000); // HTTP
+//     serverOptions.ListenAnyIP(5001, listenOptions => // HTTPS
+//     {
+//         // Note: In production, you'll need to configure proper certificates
+//         // listenOptions.UseHttps("path/to/certificate.pfx", "certificate-password");
+//     });
+// });
 
 // Add services to the container.
 builder.Services.AddControllers();

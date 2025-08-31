@@ -26,6 +26,7 @@ class Product extends BaseModel {
     this.alertThreshold = 10,
     DateTime? createdAt,
     DateTime? updatedAt,
+    // required minQuantity,
   }) {
     this.id = id;
     this.createdAt = createdAt;

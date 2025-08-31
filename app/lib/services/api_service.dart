@@ -3,7 +3,8 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = 'http://localhost:5000/api';
+  // TODO : Change this to your API URL
+  static const String baseUrl = 'http://192.168.130.1:5234/api';
   final Duration timeout = const Duration(seconds: 30);
 
   // Helper method to handle GET requests
