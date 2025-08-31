@@ -309,12 +309,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         'title': 'Factures',
         'icon': Icons.receipt_long_outlined,
         'color': Colors.purple,
-        'onTap': () {
-          // TODO: Implémenter la navigation vers l'écran des factures
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Fonctionnalité à venir')),
-          );
-        },
+        'onTap': () => Navigator.pushNamed(context, AppRoutes.invoices),
       },
       {
         'title': 'Rapports',

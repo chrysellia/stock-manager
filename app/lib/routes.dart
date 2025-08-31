@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:gestion_stock_epicerie/models/invoice.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/dashboard/dashboard_screen.dart';
 import 'screens/products/products_screen.dart';
 import 'screens/customers/customers_screen.dart';
 import 'screens/suppliers/suppliers_screen.dart';
+import 'screens/invoices/invoices_screen.dart';
+import 'screens/invoices/invoice_form_screen.dart';
 // Importer les autres écrans au fur et à mesure
 // import 'screens/stock/stock_screen.dart';
-// import 'screens/invoices/invoices_screen.dart';
 // import 'screens/settings/settings_screen.dart';
 
 class AppRoutes {
@@ -34,8 +36,15 @@ class AppRoutes {
       //   return MaterialPageRoute(builder: (_) => const StockScreen());
       case suppliers:
         return MaterialPageRoute(builder: (_) => const SuppliersScreen());
-      // case invoices:
-      //   return MaterialPageRoute(builder: (_) => const InvoicesScreen());
+      case invoices:
+        return MaterialPageRoute(builder: (_) => const InvoicesScreen());
+      case '$invoices/new':
+        return MaterialPageRoute(builder: (_) => const InvoiceFormScreen());
+      case '$invoices/edit':
+        final invoice = settings.arguments as Invoice?;
+        return MaterialPageRoute(
+          builder: (_) => InvoiceFormScreen(invoice: invoice),
+        );
       case customers:
         return MaterialPageRoute(builder: (_) => const CustomersScreen());
       // case settings:

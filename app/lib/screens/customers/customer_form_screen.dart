@@ -100,10 +100,10 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
         currentCredit: widget.customer?.currentCredit ?? 0.0,
       );
 
-      await _customerService.save(customer);
+      final savedCustomer = await _customerService.save(customer);
 
       if (mounted) {
-        Navigator.of(context).pop(true);
+        Navigator.of(context).pop(savedCustomer);
       }
     } catch (e) {
       setState(() {
@@ -154,48 +154,84 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.customer == null ? 'Nouveau client' : 'Modifier le client'),
-        actions: [
-          if (widget.customer != null)
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: _isLoading ? null : _deleteCustomer,
-              tooltip: 'Supprimer',
-            ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (_errorMessage != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 16.0),
-                        child: Text(
-                          _errorMessage!,
-                          style: const TextStyle(color: Colors.red),
+    return WillPopScope(
+      onWillPop: () async {
+        if (_formKey.currentState?.mounted ?? false) {
+          // If form is dirty, show confirmation dialog
+          if (_formKey.currentState?.mounted ?? false) {
+            final shouldPop = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Modifications non enregistrées'),
+                content: const Text('Voulez-vous enregistrer les modifications ?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text('Annuler'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: const Text('Ne pas enregistrer'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      _saveCustomer().then((_) {
+                        Navigator.of(context).pop(true);
+                      });
+                    },
+                    child: const Text('Enregistrer'),
+                  ),
+                ],
+              ),
+            );
+            return shouldPop ?? false;
+          }
+        }
+        return true;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.customer == null ? 'Nouveau client' : 'Modifier le client'),
+          actions: [
+            if (widget.customer != null)
+              IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: _isLoading ? null : _deleteCustomer,
+                tooltip: 'Supprimer',
+              ),
+          ],
+        ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (_errorMessage != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 16.0),
+                          child: Text(
+                            _errorMessage!,
+                            style: const TextStyle(color: Colors.red),
+                          ),
                         ),
-                      ),
-                    _buildNameField(),
-                    const SizedBox(height: 16),
-                    _buildContactSection(),
-                    const SizedBox(height: 16),
-                    _buildFinancialSection(),
-                    const SizedBox(height: 16),
-                    _buildNotesField(),
-                    const SizedBox(height: 24),
-                    _buildSaveButton(),
-                  ],
+                      _buildNameField(),
+                      const SizedBox(height: 16),
+                      _buildContactSection(),
+                      const SizedBox(height: 16),
+                      _buildFinancialSection(),
+                      const SizedBox(height: 16),
+                      _buildNotesField(),
+                      const SizedBox(height: 24),
+                      _buildSaveButton(),
+                    ],
+                  ),
                 ),
               ),
-            ),
+      ),
     );
   }
 
