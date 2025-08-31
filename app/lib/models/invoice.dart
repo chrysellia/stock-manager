@@ -47,6 +47,24 @@ class InvoiceItem {
   double get discountAmount => subtotal * (discountPercentage / 100);
   
   double get total => subtotal - discountAmount;
+  
+  InvoiceItem copyWith({
+    String? productId,
+    String? productName,
+    double? quantity,
+    double? unitPrice,
+    double? discountPercentage,
+    String? notes,
+  }) {
+    return InvoiceItem(
+      productId: productId ?? this.productId,
+      productName: productName ?? this.productName,
+      quantity: quantity ?? this.quantity,
+      unitPrice: unitPrice ?? this.unitPrice,
+      discountPercentage: discountPercentage ?? this.discountPercentage,
+      notes: notes ?? this.notes,
+    );
+  }
 }
 
 class Invoice extends BaseModel {

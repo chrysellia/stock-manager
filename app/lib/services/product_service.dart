@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:gestion_stock_epicerie/models/product.dart';
+import 'package:gestion_stock_epicerie/services/api/product_api_service.dart';
 import 'package:gestion_stock_epicerie/services/crud_service.dart';
 
 class ProductService extends CrudService<Product> {
@@ -59,5 +61,23 @@ class ProductService extends CrudService<Product> {
     }
 
     return productsByCategory;
+  }
+
+  // Get minimal product data for selection dialog
+  Future<List<Map<String, dynamic>>> getProductsForSelection() async {
+    try {
+      final productApiService = ProductApiService();
+      final products = await productApiService.getProductsForSelection();
+      
+      return products.map((product) => {
+        'id': product.id,
+        'name': product.name,
+        'price': product.price,
+        'quantity': product.quantity,
+      }).toList();
+    } catch (e) {
+      debugPrint('Error getting products for selection: $e');
+      return [];
+    }
   }
 }

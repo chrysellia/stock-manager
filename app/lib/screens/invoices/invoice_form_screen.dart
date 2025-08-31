@@ -5,6 +5,7 @@ import 'package:gestion_stock_epicerie/routes.dart';
 import 'package:gestion_stock_epicerie/screens/customers/customer_form_screen.dart';
 import 'package:gestion_stock_epicerie/services/customer_service.dart';
 import 'package:gestion_stock_epicerie/services/invoice_service.dart';
+import 'package:gestion_stock_epicerie/widgets/invoice_items_list.dart';
 import 'package:intl/intl.dart';
 
 class InvoiceFormScreen extends StatefulWidget {
@@ -28,6 +29,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
   final _dueDateController = TextEditingController();
   final _amountController = TextEditingController();
   final _customerSearchController = TextEditingController();
+  final List<InvoiceItem> _invoiceItems = [];
 
   bool _isLoading = false;
   bool _isLoadingCustomers = false;
@@ -78,12 +80,15 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
         _dueDateController.text =
             DateFormat('yyyy-MM-dd').format(widget.invoice!.dueDate!);
       }
-      _amountController.text = widget.invoice!.total.toStringAsFixed(2);
+      setState(() {
+        _invoiceItems.addAll(widget.invoice!.items);
+      });
     } else {
       final now = DateTime.now();
+      _invoiceNumberController.text = 'INV-${now.millisecondsSinceEpoch}';
       _issueDateController.text = DateFormat('yyyy-MM-dd').format(now);
-      _dueDateController.text = DateFormat('yyyy-MM-dd')
-          .format(now.add(const Duration(days: 30)));
+      _dueDateController.text =
+          DateFormat('yyyy-MM-dd').format(now.add(const Duration(days: 30)));
     }
   }
 
@@ -106,32 +111,42 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
     }
   }
 
+  void _updateInvoiceItems(List<InvoiceItem> items) {
+    setState(() {
+      _invoiceItems.clear();
+      _invoiceItems.addAll(items);
+    });
+  }
+
+  double get _totalAmount {
+    return _invoiceItems.fold(0, (sum, item) => sum + item.total);
+  }
+
   Future<void> _saveInvoice() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedCustomer == null) {
-      setState(() => _errorMessage = 'Veuillez sélectionner un client');
+    if (_invoiceItems.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Veuillez ajouter au moins un article')),
+        );
+      }
       return;
     }
 
     setState(() => _isLoading = true);
-    _errorMessage = null;
 
     try {
-      // Parse dates - we use ! because we know these fields are validated
-      final issueDate = DateTime.parse(_issueDateController.text);
-      final dueDate = DateTime.parse(_dueDateController.text);
-
       final invoice = Invoice(
         id: widget.invoice?.id,
-        invoiceNumber: _invoiceNumberController.text,
-        customerId: _selectedCustomer!.id,
-        customerName: _selectedCustomer!.name,
-        issueDate: issueDate,
-        dueDate: dueDate,
-        status: widget.invoice?.status ?? 'draft',
-        items: const [], // Initialize with empty items or use existing items if editing
-        createdAt: widget.invoice?.createdAt ?? DateTime.now(),
-        updatedAt: DateTime.now(),
+        invoiceNumber: _invoiceNumberController.text.trim(),
+        customerId: _selectedCustomer?.id,
+        customerName: _selectedCustomer?.name,
+        issueDate: DateTime.parse(_issueDateController.text),
+        dueDate: DateTime.parse(_dueDateController.text),
+        items: _invoiceItems,
+        taxRate: 0.0,
+        discountPercentage: 0.0,
+        status: 'draft',
       );
 
       await _invoiceService.save(invoice);
@@ -362,23 +377,25 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
+                    InvoiceItemsList(
+                      items: _invoiceItems,
+                      onItemsChanged: _updateInvoiceItems,
+                    ),
+                    const SizedBox(height: 16),
                     TextFormField(
-                      controller: _amountController,
-                      decoration: const InputDecoration(
-                        labelText: 'Montant',
-                        border: OutlineInputBorder(),
-                        prefixText: '\$ ',
+                      controller: TextEditingController(
+                        text: _totalAmount.toStringAsFixed(2),
                       ),
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Veuillez entrer un montant';
-                        }
-                        if (double.tryParse(value) == null) {
-                          return 'Veuillez entrer un nombre valide';
-                        }
-                        return null;
-                      },
+                      decoration: const InputDecoration(
+                        labelText: 'Montant total',
+                        prefixText: '€ ',
+                        border: OutlineInputBorder(),
+                      ),
+                      readOnly: true,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton(
