@@ -1,14 +1,11 @@
 import 'package:uuid/uuid.dart';
 import 'base_model.dart';
-import 'product.dart';
-import 'customer.dart';
 
 class InvoiceItem {
   final String productId;
   final String productName;
   final double quantity;
   final double unitPrice;
-  final double discountPercentage;
   final String? notes;
 
   const InvoiceItem({
@@ -16,7 +13,6 @@ class InvoiceItem {
     required this.productName,
     required this.quantity,
     required this.unitPrice,
-    this.discountPercentage = 0.0,
     this.notes,
   });
 
@@ -26,7 +22,6 @@ class InvoiceItem {
       productName: json['productName'],
       quantity: (json['quantity'] as num).toDouble(),
       unitPrice: (json['unitPrice'] as num).toDouble(),
-      discountPercentage: (json['discountPercentage'] as num?)?.toDouble() ?? 0.0,
       notes: json['notes'],
     );
   }
@@ -37,23 +32,19 @@ class InvoiceItem {
       'productName': productName,
       'quantity': quantity,
       'unitPrice': unitPrice,
-      'discountPercentage': discountPercentage,
       if (notes != null) 'notes': notes,
     };
   }
 
   double get subtotal => quantity * unitPrice;
   
-  double get discountAmount => subtotal * (discountPercentage / 100);
-  
-  double get total => subtotal - discountAmount;
+  double get total => subtotal;
   
   InvoiceItem copyWith({
     String? productId,
     String? productName,
     double? quantity,
     double? unitPrice,
-    double? discountPercentage,
     String? notes,
   }) {
     return InvoiceItem(
@@ -61,7 +52,6 @@ class InvoiceItem {
       productName: productName ?? this.productName,
       quantity: quantity ?? this.quantity,
       unitPrice: unitPrice ?? this.unitPrice,
-      discountPercentage: discountPercentage ?? this.discountPercentage,
       notes: notes ?? this.notes,
     );
   }
@@ -74,7 +64,7 @@ class Invoice extends BaseModel {
   final DateTime? dueDate;
   final DateTime? issueDate;
   final List<InvoiceItem> items;
-  final double taxRate;
+  final double? taxRate;
   final double discountPercentage;
   final String? notes;
   final String status; // draft, sent, paid, cancelled
@@ -92,7 +82,7 @@ class Invoice extends BaseModel {
     this.dueDate,
     this.issueDate,
     List<InvoiceItem>? items,
-    this.taxRate = 0.0,
+    this.taxRate,
     this.discountPercentage = 0.0,
     this.notes,
     this.status = 'draft',
@@ -122,7 +112,7 @@ class Invoice extends BaseModel {
               ?.map((item) => InvoiceItem.fromJson(item as Map<String, dynamic>))
               .toList() ??
           [],
-      taxRate: (json['taxRate'] as num?)?.toDouble() ?? 0.0,
+      taxRate: (json['taxRate'] as num?)?.toDouble(),
       discountPercentage: (json['discountPercentage'] as num?)?.toDouble() ?? 0.0,
       notes: json['notes'],
       status: json['status'] ?? 'draft',
@@ -161,16 +151,16 @@ class Invoice extends BaseModel {
   }
 
   // Calculated properties
-  double get subtotal => items.fold(0.0, (sum, item) => sum + item.total);
+  double get subtotal => items.fold(0, (sum, item) => sum + item.subtotal);
   
-  double get taxAmount => subtotal * (taxRate / 100);
+  double get discountAmount => subtotal * (discountPercentage) / 100;
   
-  double get invoiceDiscount => subtotal * (discountPercentage / 100);
+  double get taxAmount => (subtotal - discountAmount) * (taxRate ?? 0) / 100;
   
-  double get totalBeforeShipping => subtotal + taxAmount - invoiceDiscount;
+  double get totalBeforeShipping => subtotal + taxAmount - discountAmount;
   
   double get total => totalBeforeShipping + shippingCost;
-  
+
   int get itemCount => items.fold(0, (sum, item) => sum + item.quantity.toInt());
 
   // Create a copy of the invoice with updated values

@@ -6,7 +6,7 @@ import 'package:gestion_stock_epicerie/widgets/product_selection_dialog.dart';
 class InvoiceItemsList extends StatefulWidget {
   final List<InvoiceItem> items;
   final Function(List<InvoiceItem>) onItemsChanged;
-  
+
   const InvoiceItemsList({
     Key? key,
     required this.items,
@@ -38,11 +38,13 @@ class _InvoiceItemsListState extends State<InvoiceItemsList> {
     final selectedProducts = await showDialog<List<Product>>(
       context: context,
       builder: (context) => ProductSelectionDialog(
-        selectedProducts: _items.map((i) => Product(
-          id: i.productId,
-          name: i.productName,
-          price: i.unitPrice,
-        )).toList(),
+        selectedProducts: _items
+            .map((i) => Product(
+                  id: i.productId,
+                  name: i.productName,
+                  price: i.unitPrice,
+                ))
+            .toList(),
       ),
     );
 
@@ -56,7 +58,6 @@ class _InvoiceItemsListState extends State<InvoiceItemsList> {
               productName: product.name,
               quantity: 1,
               unitPrice: product.price,
-              discountPercentage: 0,
             ));
           }
         }
@@ -130,7 +131,8 @@ class _InvoiceItemsListState extends State<InvoiceItemsList> {
               ),
               Text(
                 '${_totalAmount.toStringAsFixed(2)} €',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -177,13 +179,16 @@ class _InvoiceItemRow extends StatelessWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                Expanded(
+                SizedBox(
+                  width: 100, // Fixed width for quantity field
                   child: TextFormField(
                     initialValue: item.quantity.toString(),
+                    textAlign: TextAlign.center,
                     decoration: const InputDecoration(
-                      labelText: 'Quantité',
+                      labelText: 'Qté',
                       border: OutlineInputBorder(),
                       isDense: true,
+                      contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                     ),
                     keyboardType: TextInputType.number,
                     onChanged: (value) {
@@ -209,59 +214,22 @@ class _InvoiceItemRow extends StatelessWidget {
                     },
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    initialValue: item.discountPercentage.toString(),
-                    decoration: const InputDecoration(
-                      labelText: 'Remise %',
-                      border: OutlineInputBorder(),
-                      suffixText: '%',
-                      isDense: true,
-                    ),
-                    keyboardType: TextInputType.number,
-                    onChanged: (value) {
-                      final discount = double.tryParse(value) ?? 0;
-                      onChanged(item.copyWith(discountPercentage: discount));
-                    },
-                  ),
-                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Sous-total: ${(item.quantity * item.unitPrice).toStringAsFixed(2)} €',
-                    textAlign: TextAlign.right,
+                    'Subtotal: ${(item.quantity * item.unitPrice).toStringAsFixed(2)} €',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
                 ),
               ],
             ),
-            if (item.discountPercentage > 0) ...[
-              const SizedBox(height: 4),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    'Remise: -${item.discountAmount.toStringAsFixed(2)} €',
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                ],
-              ),
-            ],
-            const SizedBox(height: 4),
+            // const SizedBox(height: 8),
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Text(
-                  'Total: ${item.total.toStringAsFixed(2)} €',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
+                const Spacer(),
               ],
             ),
           ],
