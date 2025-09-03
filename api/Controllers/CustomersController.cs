@@ -1,528 +1,144 @@
-import 'package:flutter/material.dart';
-import 'package:gestion_stock_epicerie/models/customer.dart';
-import 'package:gestion_stock_epicerie/services/customer_service.dart';
-import 'package:gestion_stock_epicerie/theme/app_theme.dart';
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using api.Data;
+using api.Models;
 
-class CustomerFormScreen extends StatefulWidget {
-  final Customer? customer;
+namespace api.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class CustomersController : ControllerBase
+    {
+        private readonly ApplicationDbContext _context;
 
-  const CustomerFormScreen({
-    super.key,
-    this.customer,
-  });
-
-  @override
-  State<CustomerFormScreen> createState() => _CustomerFormScreenState();
-}
-
-class _CustomerFormScreenState extends State<CustomerFormScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _customerService = CustomerService();
-
-  // Form field controllers
-  late TextEditingController _nameController;
-  late TextEditingController _addressController;
-  late TextEditingController _cityController;
-  late TextEditingController _postalCodeController;
-  late TextEditingController _countryController;
-  late TextEditingController _phoneController;
-  late TextEditingController _emailController;
-  late TextEditingController _taxNumberController;
-  late TextEditingController _notesController;
-  late TextEditingController _creditLimitController;
-
-  bool _isLoading = false;
-  String? _errorMessage;
-  bool _isActive = true;
-  bool _isEditing = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _isEditing = widget.customer != null;
-    _initializeControllers();
-  }
-
-  void _initializeControllers() {
-    final customer = widget.customer;
-    _nameController = TextEditingController(text: customer?.name ?? '');
-    _addressController = TextEditingController(text: customer?.address ?? '');
-    _cityController = TextEditingController(text: customer?.city ?? '');
-    _postalCodeController =
-        TextEditingController(text: customer?.postalCode ?? '');
-    _countryController = TextEditingController(text: customer?.country ?? '');
-    _phoneController = TextEditingController(text: customer?.phone ?? '');
-    _emailController = TextEditingController(text: customer?.email ?? '');
-    _taxNumberController =
-        TextEditingController(text: customer?.taxNumber ?? '');
-    _notesController = TextEditingController(text: customer?.notes ?? '');
-    _creditLimitController = TextEditingController(
-      text: customer?.creditLimit?.toStringAsFixed(2) ?? '',
-    );
-    _isActive = customer?.isActive ?? true;
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _addressController.dispose();
-    _cityController.dispose();
-    _postalCodeController.dispose();
-    _countryController.dispose();
-    _phoneController.dispose();
-    _emailController.dispose();
-    _taxNumberController.dispose();
-    _notesController.dispose();
-    _creditLimitController.dispose();
-    super.dispose();
-  }
-
-  Customer _buildCustomerFromForm() {
-    final baseData = {
-      'name': _nameController.text.trim(),
-      'address': _addressController.text.trim().isNotEmpty
-          ? _addressController.text.trim()
-          : null,
-      'city': _cityController.text.trim().isNotEmpty
-          ? _cityController.text.trim()
-          : null,
-      'postalCode': _postalCodeController.text.trim().isNotEmpty
-          ? _postalCodeController.text.trim()
-          : null,
-      'country': _countryController.text.trim().isNotEmpty
-          ? _countryController.text.trim()
-          : null,
-      'phone': _phoneController.text.trim().isNotEmpty
-          ? _phoneController.text.trim()
-          : null,
-      'email': _emailController.text.trim().isNotEmpty
-          ? _emailController.text.trim()
-          : null,
-      'taxNumber': _taxNumberController.text.trim().isNotEmpty
-          ? _taxNumberController.text.trim()
-          : null,
-      'notes': _notesController.text.trim().isNotEmpty
-          ? _notesController.text.trim()
-          : null,
-      'isActive': _isActive,
-      'creditLimit': double.tryParse(_creditLimitController.text.trim()),
-    };
-
-    if (_isEditing) {
-      // For editing existing customer, use copyWith to preserve the ID
-      return widget.customer!.copyWith(
-        name: baseData['name'] as String,
-        address: baseData['address'] as String?,
-        city: baseData['city'] as String?,
-        postalCode: baseData['postalCode'] as String?,
-        country: baseData['country'] as String?,
-        phone: baseData['phone'] as String?,
-        email: baseData['email'] as String?,
-        taxNumber: baseData['taxNumber'] as String?,
-        notes: baseData['notes'] as String?,
-        isActive: baseData['isActive'] as bool,
-        creditLimit: baseData['creditLimit'] as double?,
-      );
-    } else {
-      // For new customer, create without ID (let the service generate it)
-      return Customer(
-        name: baseData['name'] as String,
-        address: baseData['address'] as String?,
-        city: baseData['city'] as String?,
-        postalCode: baseData['postalCode'] as String?,
-        country: baseData['country'] as String?,
-        phone: baseData['phone'] as String?,
-        email: baseData['email'] as String?,
-        taxNumber: baseData['taxNumber'] as String?,
-        notes: baseData['notes'] as String?,
-        isActive: baseData['isActive'] as bool,
-        creditLimit: baseData['creditLimit'] as double?,
-        currentCredit: 0.0, // Initialize for new customers
-      );
-    }
-  }
-
-  Future<void> _saveCustomer() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final customer = _buildCustomerFromForm();
-      
-      Customer savedCustomer;
-      if (_isEditing) {
-        savedCustomer = await _customerService.update(customer);
-      } else {
-        savedCustomer = await _customerService.create(customer);
-      }
-
-      if (mounted) {
-        Navigator.of(context).pop(savedCustomer);
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = _isEditing 
-            ? 'Erreur lors de la modification du client: $e'
-            : 'Erreur lors de la création du client: $e';
-      });
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-
-  Future<void> _deleteCustomer() async {
-    if (!_isEditing) return;
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Supprimer le client'),
-        content: const Text(
-            'Êtes-vous sûr de vouloir supprimer ce client ? Cette action est irréversible.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Annuler'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true && mounted) {
-      setState(() => _isLoading = true);
-
-      try {
-        await _customerService.delete(widget.customer!.id!);
-        if (mounted) {
-          Navigator.of(context).pop(true);
+        public CustomersController(ApplicationDbContext context)
+        {
+            _context = context;
         }
-      } catch (e) {
-        setState(() {
-          _errorMessage = 'Erreur lors de la suppression du client: $e';
-          _isLoading = false;
-        });
-      }
-    }
-  }
 
-  bool _hasChanges() {
-    if (!_isEditing) {
-      // For new customers, check if any field has been filled
-      return _nameController.text.trim().isNotEmpty ||
-          _addressController.text.trim().isNotEmpty ||
-          _cityController.text.trim().isNotEmpty ||
-          _postalCodeController.text.trim().isNotEmpty ||
-          _countryController.text.trim().isNotEmpty ||
-          _phoneController.text.trim().isNotEmpty ||
-          _emailController.text.trim().isNotEmpty ||
-          _taxNumberController.text.trim().isNotEmpty ||
-          _notesController.text.trim().isNotEmpty ||
-          _creditLimitController.text.trim().isNotEmpty ||
-          _isActive != true;
-    }
-
-    // For editing, compare with original values
-    final customer = widget.customer!;
-    return _nameController.text.trim() != (customer.name ?? '') ||
-        _addressController.text.trim() != (customer.address ?? '') ||
-        _cityController.text.trim() != (customer.city ?? '') ||
-        _postalCodeController.text.trim() != (customer.postalCode ?? '') ||
-        _countryController.text.trim() != (customer.country ?? '') ||
-        _phoneController.text.trim() != (customer.phone ?? '') ||
-        _emailController.text.trim() != (customer.email ?? '') ||
-        _taxNumberController.text.trim() != (customer.taxNumber ?? '') ||
-        _notesController.text.trim() != (customer.notes ?? '') ||
-        _creditLimitController.text.trim() != (customer.creditLimit?.toStringAsFixed(2) ?? '') ||
-        _isActive != customer.isActive;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        if (_hasChanges()) {
-          final shouldPop = await showDialog<bool>(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Modifications non enregistrées'),
-              content: const Text('Voulez-vous enregistrer les modifications ?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Annuler'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Ne pas enregistrer'),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    await _saveCustomer();
-                    if (mounted) {
-                      Navigator.of(context).pop(true);
-                    }
-                  },
-                  child: const Text('Enregistrer'),
-                ),
-              ],
-            ),
-          );
-          return shouldPop ?? false;
+        // GET: api/Customers
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Customer>>> GetCustomers()
+        {
+            return await _context.Customers.Where(c => !c.IsDeleted).ToListAsync();
         }
-        return true;
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(_isEditing ? 'Modifier le client' : 'Nouveau client'),
-          actions: [
-            if (_isEditing)
-              IconButton(
-                icon: const Icon(Icons.delete),
-                onPressed: _isLoading ? null : _deleteCustomer,
-                tooltip: 'Supprimer',
-              ),
-          ],
-        ),
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      if (_errorMessage != null)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 16.0),
-                          child: Text(
-                            _errorMessage!,
-                            style: const TextStyle(color: Colors.red),
-                          ),
-                        ),
-                      _buildNameField(),
-                      const SizedBox(height: 16),
-                      _buildContactSection(),
-                      const SizedBox(height: 16),
-                      _buildFinancialSection(),
-                      const SizedBox(height: 16),
-                      _buildNotesField(),
-                      const SizedBox(height: 24),
-                      _buildSaveButton(),
-                    ],
-                  ),
-                ),
-              ),
-      ),
-    );
-  }
 
-  Widget _buildNameField() {
-    return TextFormField(
-      controller: _nameController,
-      decoration: const InputDecoration(
-        labelText: 'Nom complet *',
-        border: OutlineInputBorder(),
-      ),
-      validator: (value) {
-        if (value == null || value.trim().isEmpty) {
-          return 'Veuillez entrer un nom';
+        // GET: api/Customers/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Customer>> GetCustomer(string id)
+        {
+            var customer = await _context.Customers.FindAsync(id);
+
+            if (customer == null || customer.IsDeleted)
+            {
+                return NotFound();
+            }
+
+            return customer;
         }
-        return null;
-      },
-    );
-  }
 
-  Widget _buildContactSection() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Coordonnées',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _addressController,
-              decoration: const InputDecoration(
-                labelText: 'Adresse',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: TextFormField(
-                    controller: _postalCodeController,
-                    decoration: const InputDecoration(
-                      labelText: 'Code postal',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 3,
-                  child: TextFormField(
-                    controller: _cityController,
-                    decoration: const InputDecoration(
-                      labelText: 'Ville',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _countryController,
-              decoration: const InputDecoration(
-                labelText: 'Pays',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _phoneController,
-              decoration: const InputDecoration(
-                labelText: 'Téléphone',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.phone),
-              ),
-              keyboardType: TextInputType.phone,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _emailController,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.email),
-              ),
-              keyboardType: TextInputType.emailAddress,
-              validator: (value) {
-                if (value != null && value.isNotEmpty) {
-                  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                      .hasMatch(value)) {
-                    return 'Veuillez entrer un email valide';
-                  }
+        // POST: api/Customers
+        [HttpPost]
+        public async Task<ActionResult<Customer>> CreateCustomer(Customer customer)
+        {
+            // Set required properties
+            customer.Id = Guid.NewGuid().ToString();
+            customer.IsActive = true;
+            customer.IsDeleted = false;
+            
+            // Use SetTimestamps method which handles the DateTime.Kind properly
+            customer.CreatedAt = DateTime.UtcNow;
+            customer.UpdatedAt = DateTime.UtcNow;
+
+            _context.Customers.Add(customer);
+            
+            try 
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details for debugging
+                Console.WriteLine($"Error saving customer: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
                 }
-                return null;
-              },
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _taxNumberController,
-              decoration: const InputDecoration(
-                labelText: 'N° TVA',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+                throw; // Re-throw to return 500 error to client
+            }
 
-  Widget _buildFinancialSection() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Informations financières',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _creditLimitController,
-              decoration: const InputDecoration(
-                labelText: 'Limite de crédit (€)',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.euro),
-              ),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              validator: (value) {
-                if (value != null && value.isNotEmpty) {
-                  final amount = double.tryParse(value);
-                  if (amount == null || amount < 0) {
-                    return 'Veuillez entrer un montant valide';
-                  }
+            return CreatedAtAction(nameof(GetCustomer), new { id = customer.Id }, customer);
+        }
+
+        // PUT: api/Customers/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateCustomer(string id, Customer customer)
+        {
+            if (id != customer.Id)
+            {
+                return BadRequest();
+            }
+
+            var existingCustomer = await _context.Customers.FindAsync(id);
+            if (existingCustomer == null || existingCustomer.IsDeleted)
+            {
+                return NotFound();
+            }
+
+            // Copy all properties except the ones we want to handle manually
+            var entry = _context.Entry(existingCustomer);
+            entry.CurrentValues.SetValues(customer);
+            
+            // Use the proper timestamp setting method
+            existingCustomer.UpdatedAt = DateTime.UtcNow;
+            // existingCustomer.SetTimestamps();
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!CustomerExists(id))
+                {
+                    return NotFound();
                 }
-                return null;
-              },
-            ),
-            const SizedBox(height: 12),
-            SwitchListTile(
-              title: const Text('Client actif'),
-              value: _isActive,
-              onChanged: (bool value) {
-                setState(() {
-                  _isActive = value;
-                });
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+                else
+                {
+                    throw;
+                }
+            }
 
-  Widget _buildNotesField() {
-    return TextFormField(
-      controller: _notesController,
-      decoration: const InputDecoration(
-        labelText: 'Notes',
-        border: OutlineInputBorder(),
-        alignLabelWithHint: true,
-      ),
-      maxLines: 3,
-    );
-  }
+            return NoContent();
+        }
 
-  Widget _buildSaveButton() {
-    return ElevatedButton(
-      onPressed: _isLoading ? null : _saveCustomer,
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        backgroundColor: AppTheme.primaryColor,
-        foregroundColor: Colors.white,
-      ),
-      child: _isLoading
-          ? const SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator(
-                color: Colors.white,
-                strokeWidth: 2,
-              ),
-            )
-          : Text(
-              _isEditing ? 'Mettre à jour' : 'Créer',
-              style: const TextStyle(fontSize: 16),
-            ),
-    );
-  }
+        // DELETE: api/Customers/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteCustomer(string id)
+        {
+            var customer = await _context.Customers.FindAsync(id);
+            if (customer == null || customer.IsDeleted)
+            {
+                return NotFound();
+            }
+
+            // Soft delete
+            customer.IsDeleted = true;
+            
+            customer.UpdatedAt = DateTime.UtcNow;
+            
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        private bool CustomerExists(string id)
+        {
+            return _context.Customers.Any(e => e.Id == id && !e.IsDeleted);
+        }
+    }
 }
