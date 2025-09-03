@@ -154,7 +154,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
 
     try {
       final customer = _buildCustomerFromForm();
-      
+
       Customer savedCustomer;
       if (_isEditing) {
         savedCustomer = await _customerService.update(customer);
@@ -167,7 +167,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
       }
     } catch (e) {
       setState(() {
-        _errorMessage = _isEditing 
+        _errorMessage = _isEditing
             ? 'Erreur lors de la modification du client: $e'
             : 'Erreur lors de la création du client: $e';
       });
@@ -244,7 +244,8 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
         _emailController.text.trim() != (customer.email ?? '') ||
         _taxNumberController.text.trim() != (customer.taxNumber ?? '') ||
         _notesController.text.trim() != (customer.notes ?? '') ||
-        _creditLimitController.text.trim() != (customer.creditLimit?.toStringAsFixed(2) ?? '') ||
+        _creditLimitController.text.trim() !=
+            (customer.creditLimit?.toStringAsFixed(2) ?? '') ||
         _isActive != customer.isActive;
   }
 
@@ -257,7 +258,8 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
             context: context,
             builder: (context) => AlertDialog(
               title: const Text('Modifications non enregistrées'),
-              content: const Text('Voulez-vous enregistrer les modifications ?'),
+              content:
+                  const Text('Voulez-vous enregistrer les modifications ?'),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(false),

@@ -4,7 +4,7 @@ import 'package:gestion_stock_epicerie/services/product_service.dart';
 
 class ProductSelectionDialog extends StatefulWidget {
   final List<Product> selectedProducts;
-  
+
   const ProductSelectionDialog({
     Key? key,
     required this.selectedProducts,
@@ -32,11 +32,11 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
 
   Future<void> _loadProducts() async {
     if (!mounted) return;
-    
+
     try {
       final response = await _productService.getProductsForSelection();
       if (!mounted) return;
-      
+
       setState(() {
         _allProducts = response;
         _filteredProducts = response;
@@ -107,7 +107,7 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Search bar
             TextField(
               controller: _searchController,
@@ -134,11 +134,12 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
               onChanged: _filterProducts,
             ),
             const SizedBox(height: 16),
-            
+
             // Selected products count
             if (_tempSelectedProducts.isNotEmpty)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   color: Theme.of(context).primaryColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -162,7 +163,7 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
                 ),
               ),
             const SizedBox(height: 16),
-            
+
             // Product list
             Expanded(
               child: _isLoading
@@ -220,14 +221,17 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
                             )
                           : ListView.separated(
                               itemCount: _filteredProducts.length,
-                              separatorBuilder: (context, index) => const Divider(height: 1),
+                              separatorBuilder: (context, index) =>
+                                  const Divider(height: 1),
                               itemBuilder: (context, index) {
                                 final product = _filteredProducts[index];
-                                final isAlreadyAdded = _isProductAlreadyAdded(product['id']);
-                                final isTempSelected = _isProductTempSelected(product['id']);
+                                final isAlreadyAdded =
+                                    _isProductAlreadyAdded(product['id']);
+                                final isTempSelected =
+                                    _isProductTempSelected(product['id']);
                                 final quantity = product['quantity'] ?? 0;
                                 final isOutOfStock = quantity <= 0;
-                                
+
                                 return ListTile(
                                   enabled: !isAlreadyAdded && !isOutOfStock,
                                   leading: Container(
@@ -238,7 +242,9 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
                                           ? Colors.grey.withOpacity(0.3)
                                           : isOutOfStock
                                               ? Colors.red.withOpacity(0.1)
-                                              : Theme.of(context).primaryColor.withOpacity(0.1),
+                                              : Theme.of(context)
+                                                  .primaryColor
+                                                  .withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Icon(
@@ -260,11 +266,14 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
                                       Expanded(
                                         child: Text(
                                           product['name'],
+                                          maxLines: 1,
                                           style: TextStyle(
+                                            overflow: TextOverflow.ellipsis,
                                             fontWeight: FontWeight.w500,
-                                            color: isAlreadyAdded || isOutOfStock
-                                                ? Colors.grey
-                                                : null,
+                                            color:
+                                                isAlreadyAdded || isOutOfStock
+                                                    ? Colors.grey
+                                                    : null,
                                             decoration: isAlreadyAdded
                                                 ? TextDecoration.lineThrough
                                                 : null,
@@ -279,7 +288,8 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
                                           ),
                                           decoration: BoxDecoration(
                                             color: Colors.grey.withOpacity(0.2),
-                                            borderRadius: BorderRadius.circular(12),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
                                           ),
                                           child: const Text(
                                             'Déjà ajouté',
@@ -297,7 +307,8 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
                                           ),
                                           decoration: BoxDecoration(
                                             color: Colors.red.withOpacity(0.2),
-                                            borderRadius: BorderRadius.circular(12),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
                                           ),
                                           child: const Text(
                                             'Rupture',
@@ -309,40 +320,48 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
                                         ),
                                     ],
                                   ),
-                                  subtitle: Row(
-                                    children: [
-                                      Text(
-                                        '${product['price']?.toStringAsFixed(2) ?? '0.00'} €',
-                                        style: TextStyle(
-                                          color: isAlreadyAdded || isOutOfStock
-                                              ? Colors.grey
-                                              : Theme.of(context).primaryColor,
-                                          fontWeight: FontWeight.bold,
+                                  subtitle: Expanded(
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          '${product['price']?.toStringAsFixed(2) ?? '0.00'} €',
+                                          style: TextStyle(
+                                            color:
+                                                isAlreadyAdded || isOutOfStock
+                                                    ? Colors.grey
+                                                    : Theme.of(context)
+                                                        .primaryColor,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(width: 16),
-                                      Icon(
-                                        Icons.inventory,
-                                        size: 14,
-                                        color: quantity > 10
-                                            ? Colors.green
-                                            : quantity > 0
-                                                ? Colors.orange
-                                                : Colors.red,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        'Stock: $quantity',
-                                        style: TextStyle(
-                                          fontSize: 12,
+                                        const SizedBox(width: 16),
+                                        Icon(
+                                          Icons.inventory,
+                                          size: 14,
                                           color: quantity > 10
                                               ? Colors.green
                                               : quantity > 0
                                                   ? Colors.orange
                                                   : Colors.red,
                                         ),
-                                      ),
-                                    ],
+                                        const SizedBox(width: 4),
+                                        Expanded(
+                                          child: Text(
+                                            'Stock: $quantity',
+                                            maxLines: 1,
+                                            style: TextStyle(
+                                              overflow: TextOverflow.fade,
+                                              fontSize: 12,
+                                              color: quantity > 10
+                                                  ? Colors.green
+                                                  : quantity > 0
+                                                      ? Colors.orange
+                                                      : Colors.red,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                   trailing: !isAlreadyAdded && !isOutOfStock
                                       ? Checkbox(
@@ -350,14 +369,17 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
                                           onChanged: (bool? selected) {
                                             setState(() {
                                               if (selected == true) {
-                                                _tempSelectedProducts.add(Product(
+                                                _tempSelectedProducts
+                                                    .add(Product(
                                                   id: product['id'],
                                                   name: product['name'],
                                                   price: product['price'],
-                                                  quantity: product['quantity'] ?? 0,
+                                                  quantity:
+                                                      product['quantity'] ?? 0,
                                                 ));
                                               } else {
-                                                _tempSelectedProducts.removeWhere(
+                                                _tempSelectedProducts
+                                                    .removeWhere(
                                                   (p) => p.id == product['id'],
                                                 );
                                               }
@@ -377,7 +399,8 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
                                                 id: product['id'],
                                                 name: product['name'],
                                                 price: product['price'],
-                                                quantity: product['quantity'] ?? 0,
+                                                quantity:
+                                                    product['quantity'] ?? 0,
                                               ));
                                             }
                                           });
@@ -387,7 +410,7 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
                               },
                             ),
             ),
-            
+
             // Action buttons
             const SizedBox(height: 16),
             Row(
@@ -409,7 +432,8 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
                   child: ElevatedButton(
                     onPressed: _tempSelectedProducts.isEmpty
                         ? null
-                        : () => Navigator.of(context).pop(_tempSelectedProducts),
+                        : () =>
+                            Navigator.of(context).pop(_tempSelectedProducts),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
