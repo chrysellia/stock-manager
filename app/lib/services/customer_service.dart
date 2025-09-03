@@ -1,20 +1,72 @@
 import 'package:gestion_stock_epicerie/models/customer.dart';
-import 'package:gestion_stock_epicerie/services/crud_service.dart';
+import 'package:gestion_stock_epicerie/services/api_service.dart';
 
-class CustomerService extends CrudService<Customer> {
-  CustomerService()
-      : super(
-          collectionName: 'customers',
-          fromJson: (json) => Customer.fromJson(json),
-        );
+class CustomerService {
+  final ApiService _apiService = ApiService();
+  final String _endpoint = 'customers';
+
+  // Get all customers
+  Future<List<Customer>> getAll() async {
+    try {
+      final response = await _apiService.get(_endpoint);
+      return (response as List).map((json) => Customer.fromJson(json)).toList();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // Get a customer by ID
+  Future<Customer> getById(String id) async {
+    try {
+      final response = await _apiService.get('$_endpoint/$id');
+      return Customer.fromJson(response);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Customer> save(Customer customer) async {
+    try {
+      final response = await _apiService.post(
+        _endpoint,
+        body: customer.toJson(forCreation: true),
+      );
+      return Customer.fromJson(response);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Customer> update(Customer customer) async {
+    try {
+      await _apiService.put(
+        '$_endpoint/${customer.id}',
+        body: customer.toJson(),
+      );
+      return customer;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // Delete a customer
+  Future<void> delete(String id) async {
+    try {
+      await _apiService.delete('$_endpoint/$id');
+    } catch (e) {
+      rethrow;
+    }
+  }
 
   // Get active customers
   Future<List<Customer>> getActiveCustomers() async {
-    final customers = await getAll();
-    return customers
-        .where((c) => c.isActive)
-        .toList()
-      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    try {
+      final customers = await getAll();
+      return customers.where((c) => c.isActive).toList()
+        ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    } catch (e) {
+      rethrow;
+    }
   }
 
   // Search customers by name or contact information
@@ -28,7 +80,8 @@ class CustomerService extends CrudService<Customer> {
       return customer.name.toLowerCase().contains(lowercaseQuery) ||
           (customer.email?.toLowerCase().contains(lowercaseQuery) ?? false) ||
           (customer.phone?.contains(query) ?? false) ||
-          (customer.taxNumber?.toLowerCase().contains(lowercaseQuery) ?? false) ||
+          (customer.taxNumber?.toLowerCase().contains(lowercaseQuery) ??
+              false) ||
           (customer.notes?.toLowerCase().contains(lowercaseQuery) ?? false);
     }).toList()
       ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
@@ -39,10 +92,7 @@ class CustomerService extends CrudService<Customer> {
     try {
       final customer = await getById(id);
       if (customer != null) {
-        await save(customer.copyWith(
-          isActive: false,
-          // updatedAt: DateTime.now(),
-        ));
+        await save(customer.copyWith(isActive: false));
       }
     } catch (e) {
       throw Exception('Error deactivating customer: $e');
@@ -55,10 +105,7 @@ class CustomerService extends CrudService<Customer> {
       final customer = await getById(customerId);
       if (customer != null) {
         final newCredit = (customer.currentCredit ?? 0) + amount;
-        await save(customer.copyWith(
-          currentCredit: newCredit,
-          // updatedAt: DateTime.now(),
-        ));
+        await save(customer.copyWith(currentCredit: newCredit));
       }
     } catch (e) {
       throw Exception('Error updating customer credit: $e');
@@ -68,9 +115,7 @@ class CustomerService extends CrudService<Customer> {
   // Get customers with negative balance
   Future<List<Customer>> getCustomersWithNegativeBalance() async {
     final customers = await getActiveCustomers();
-    return customers
-        .where((c) => (c.currentCredit ?? 0) < 0)
-        .toList()
+    return customers.where((c) => (c.currentCredit ?? 0) < 0).toList()
       ..sort((a, b) => (a.currentCredit ?? 0).compareTo(b.currentCredit ?? 0));
   }
 

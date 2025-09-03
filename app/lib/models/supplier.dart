@@ -26,13 +26,9 @@ class Supplier extends BaseModel {
     this.website,
     this.taxNumber,
     this.notes,
-    this.isActive = true,
-    DateTime? createdAt,
-    DateTime? updatedAt,
+    this.isActive = true
   }) : super() {
     this.id = id ?? const Uuid().v4();
-    this.createdAt = createdAt ?? DateTime.now();
-    this.updatedAt = updatedAt ?? DateTime.now();
   }
 
   // Créer un fournisseur à partir d'un Map (pour la désérialisation)
@@ -49,33 +45,47 @@ class Supplier extends BaseModel {
       website: json['website'],
       taxNumber: json['taxNumber'],
       notes: json['notes'],
-      isActive: json['isActive'] ?? true,
-      createdAt:
-          json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
-      updatedAt:
-          json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
+      isActive: json['isActive'] ?? true
     );
   }
 
   // Convertir le fournisseur en Map (pour la sérialisation)
   @override
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'address': address,
-      'city': city,
-      'postalCode': postalCode,
-      'country': country,
-      'phone': phone,
-      'email': email,
-      'website': website,
-      'taxNumber': taxNumber,
-      'notes': notes,
-      'isActive': isActive,
-      'createdAt': createdAt?.toIso8601String(),
-      'updatedAt': updatedAt?.toIso8601String(),
-    };
+  Map<String, dynamic> toJson({bool forCreation = false}) {
+    final Map<String, dynamic> data = {};
+    
+    void addIfNotNull(String key, dynamic value) {
+      if (value != null) {
+        if (value is String && value.isNotEmpty) {
+          data[key] = value;
+        } else if (value is num || value is bool) {
+          data[key] = value;
+        } else if (value is String && value.isEmpty) {
+          // Skip empty strings
+        } else if (value != null) {
+          data[key] = value;
+        }
+      }
+    }
+
+    // Don't include ID for new supplier creation
+    if (!forCreation) {
+      addIfNotNull('id', id);
+    }
+    
+    addIfNotNull('name', name);
+    addIfNotNull('address', address);
+    addIfNotNull('city', city);
+    addIfNotNull('postalCode', postalCode);
+    addIfNotNull('country', country);
+    addIfNotNull('phone', phone);
+    addIfNotNull('email', email);
+    addIfNotNull('website', website);
+    addIfNotNull('taxNumber', taxNumber);
+    addIfNotNull('notes', notes);
+    addIfNotNull('isActive', isActive);
+    
+    return data;
   }
 
   // Créer une copie du fournisseur avec des mises à jour
@@ -92,7 +102,6 @@ class Supplier extends BaseModel {
     String? taxNumber,
     String? notes,
     bool? isActive,
-    required DateTime updatedAt,
   }) {
     return Supplier(
       id: id ?? this.id,
@@ -106,9 +115,7 @@ class Supplier extends BaseModel {
       website: website ?? this.website,
       taxNumber: taxNumber ?? this.taxNumber,
       notes: notes ?? this.notes,
-      isActive: isActive ?? this.isActive,
-      createdAt: createdAt,
-      updatedAt: DateTime.now(),
+      isActive: isActive ?? this.isActive
     );
   }
 

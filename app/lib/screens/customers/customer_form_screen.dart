@@ -34,10 +34,12 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
   bool _isLoading = false;
   String? _errorMessage;
   bool _isActive = true;
+  bool _isEditing = false;
 
   @override
   void initState() {
     super.initState();
+    _isEditing = widget.customer != null;
     _initializeControllers();
   }
 
@@ -46,11 +48,13 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
     _nameController = TextEditingController(text: customer?.name ?? '');
     _addressController = TextEditingController(text: customer?.address ?? '');
     _cityController = TextEditingController(text: customer?.city ?? '');
-    _postalCodeController = TextEditingController(text: customer?.postalCode ?? '');
+    _postalCodeController =
+        TextEditingController(text: customer?.postalCode ?? '');
     _countryController = TextEditingController(text: customer?.country ?? '');
     _phoneController = TextEditingController(text: customer?.phone ?? '');
     _emailController = TextEditingController(text: customer?.email ?? '');
-    _taxNumberController = TextEditingController(text: customer?.taxNumber ?? '');
+    _taxNumberController =
+        TextEditingController(text: customer?.taxNumber ?? '');
     _notesController = TextEditingController(text: customer?.notes ?? '');
     _creditLimitController = TextEditingController(
       text: customer?.creditLimit?.toStringAsFixed(2) ?? '',
@@ -73,6 +77,71 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
     super.dispose();
   }
 
+  Customer _buildCustomerFromForm() {
+    final baseData = {
+      'name': _nameController.text.trim(),
+      'address': _addressController.text.trim().isNotEmpty
+          ? _addressController.text.trim()
+          : null,
+      'city': _cityController.text.trim().isNotEmpty
+          ? _cityController.text.trim()
+          : null,
+      'postalCode': _postalCodeController.text.trim().isNotEmpty
+          ? _postalCodeController.text.trim()
+          : null,
+      'country': _countryController.text.trim().isNotEmpty
+          ? _countryController.text.trim()
+          : null,
+      'phone': _phoneController.text.trim().isNotEmpty
+          ? _phoneController.text.trim()
+          : null,
+      'email': _emailController.text.trim().isNotEmpty
+          ? _emailController.text.trim()
+          : null,
+      'taxNumber': _taxNumberController.text.trim().isNotEmpty
+          ? _taxNumberController.text.trim()
+          : null,
+      'notes': _notesController.text.trim().isNotEmpty
+          ? _notesController.text.trim()
+          : null,
+      'isActive': _isActive,
+      'creditLimit': double.tryParse(_creditLimitController.text.trim()),
+    };
+
+    if (_isEditing) {
+      // For editing existing customer, use copyWith to preserve the ID
+      return widget.customer!.copyWith(
+        name: baseData['name'] as String,
+        address: baseData['address'] as String?,
+        city: baseData['city'] as String?,
+        postalCode: baseData['postalCode'] as String?,
+        country: baseData['country'] as String?,
+        phone: baseData['phone'] as String?,
+        email: baseData['email'] as String?,
+        taxNumber: baseData['taxNumber'] as String?,
+        notes: baseData['notes'] as String?,
+        isActive: baseData['isActive'] as bool,
+        creditLimit: baseData['creditLimit'] as double?,
+      );
+    } else {
+      // For new customer, create without ID (let the service generate it)
+      return Customer(
+        name: baseData['name'] as String,
+        address: baseData['address'] as String?,
+        city: baseData['city'] as String?,
+        postalCode: baseData['postalCode'] as String?,
+        country: baseData['country'] as String?,
+        phone: baseData['phone'] as String?,
+        email: baseData['email'] as String?,
+        taxNumber: baseData['taxNumber'] as String?,
+        notes: baseData['notes'] as String?,
+        isActive: baseData['isActive'] as bool,
+        creditLimit: baseData['creditLimit'] as double?,
+        currentCredit: 0.0, // Initialize for new customers
+      );
+    }
+  }
+
   Future<void> _saveCustomer() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -84,30 +153,23 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
     });
 
     try {
-      final customer = Customer(
-        id: widget.customer?.id,
-        name: _nameController.text.trim(),
-        address: _addressController.text.trim().isNotEmpty ? _addressController.text.trim() : null,
-        city: _cityController.text.trim().isNotEmpty ? _cityController.text.trim() : null,
-        postalCode: _postalCodeController.text.trim().isNotEmpty ? _postalCodeController.text.trim() : null,
-        country: _countryController.text.trim().isNotEmpty ? _countryController.text.trim() : null,
-        phone: _phoneController.text.trim().isNotEmpty ? _phoneController.text.trim() : null,
-        email: _emailController.text.trim().isNotEmpty ? _emailController.text.trim() : null,
-        taxNumber: _taxNumberController.text.trim().isNotEmpty ? _taxNumberController.text.trim() : null,
-        notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
-        isActive: _isActive,
-        creditLimit: double.tryParse(_creditLimitController.text.trim()),
-        currentCredit: widget.customer?.currentCredit ?? 0.0,
-      );
-
-      final savedCustomer = await _customerService.save(customer);
+      final customer = _buildCustomerFromForm();
+      
+      Customer savedCustomer;
+      if (_isEditing) {
+        savedCustomer = await _customerService.update(customer);
+      } else {
+        savedCustomer = await _customerService.save(customer);
+      }
 
       if (mounted) {
         Navigator.of(context).pop(savedCustomer);
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Erreur lors de la sauvegarde du client: $e';
+        _errorMessage = _isEditing 
+            ? 'Erreur lors de la modification du client: $e'
+            : 'Erreur lors de la création du client: $e';
       });
     } finally {
       if (mounted) {
@@ -117,11 +179,14 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
   }
 
   Future<void> _deleteCustomer() async {
+    if (!_isEditing) return;
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Supprimer le client'),
-        content: const Text('Êtes-vous sûr de vouloir supprimer ce client ? Cette action est irréversible.'),
+        content: const Text(
+            'Êtes-vous sûr de vouloir supprimer ce client ? Cette action est irréversible.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -152,48 +217,77 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
     }
   }
 
+  bool _hasChanges() {
+    if (!_isEditing) {
+      // For new customers, check if any field has been filled
+      return _nameController.text.trim().isNotEmpty ||
+          _addressController.text.trim().isNotEmpty ||
+          _cityController.text.trim().isNotEmpty ||
+          _postalCodeController.text.trim().isNotEmpty ||
+          _countryController.text.trim().isNotEmpty ||
+          _phoneController.text.trim().isNotEmpty ||
+          _emailController.text.trim().isNotEmpty ||
+          _taxNumberController.text.trim().isNotEmpty ||
+          _notesController.text.trim().isNotEmpty ||
+          _creditLimitController.text.trim().isNotEmpty ||
+          _isActive != true;
+    }
+
+    // For editing, compare with original values
+    final customer = widget.customer!;
+    return _nameController.text.trim() != (customer.name ?? '') ||
+        _addressController.text.trim() != (customer.address ?? '') ||
+        _cityController.text.trim() != (customer.city ?? '') ||
+        _postalCodeController.text.trim() != (customer.postalCode ?? '') ||
+        _countryController.text.trim() != (customer.country ?? '') ||
+        _phoneController.text.trim() != (customer.phone ?? '') ||
+        _emailController.text.trim() != (customer.email ?? '') ||
+        _taxNumberController.text.trim() != (customer.taxNumber ?? '') ||
+        _notesController.text.trim() != (customer.notes ?? '') ||
+        _creditLimitController.text.trim() != (customer.creditLimit?.toStringAsFixed(2) ?? '') ||
+        _isActive != customer.isActive;
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        if (_formKey.currentState?.mounted ?? false) {
-          // If form is dirty, show confirmation dialog
-          if (_formKey.currentState?.mounted ?? false) {
-            final shouldPop = await showDialog<bool>(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Modifications non enregistrées'),
-                content: const Text('Voulez-vous enregistrer les modifications ?'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: const Text('Annuler'),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: const Text('Ne pas enregistrer'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      _saveCustomer().then((_) {
-                        Navigator.of(context).pop(true);
-                      });
-                    },
-                    child: const Text('Enregistrer'),
-                  ),
-                ],
-              ),
-            );
-            return shouldPop ?? false;
-          }
+        if (_hasChanges()) {
+          final shouldPop = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Modifications non enregistrées'),
+              content: const Text('Voulez-vous enregistrer les modifications ?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Annuler'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('Ne pas enregistrer'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    await _saveCustomer();
+                    if (mounted) {
+                      Navigator.of(context).pop(true);
+                    }
+                  },
+                  child: const Text('Enregistrer'),
+                ),
+              ],
+            ),
+          );
+          return shouldPop ?? false;
         }
         return true;
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(widget.customer == null ? 'Nouveau client' : 'Modifier le client'),
+          title: Text(_isEditing ? 'Modifier le client' : 'Nouveau client'),
           actions: [
-            if (widget.customer != null)
+            if (_isEditing)
               IconButton(
                 icon: const Icon(Icons.delete),
                 onPressed: _isLoading ? null : _deleteCustomer,
@@ -327,7 +421,8 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
               keyboardType: TextInputType.emailAddress,
               validator: (value) {
                 if (value != null && value.isNotEmpty) {
-                  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}\$').hasMatch(value)) {
+                  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                      .hasMatch(value)) {
                     return 'Veuillez entrer un email valide';
                   }
                 }
@@ -367,7 +462,8 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.euro),
               ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               validator: (value) {
                 if (value != null && value.isNotEmpty) {
                   final amount = double.tryParse(value);
@@ -423,9 +519,9 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                 strokeWidth: 2,
               ),
             )
-          : const Text(
-              'Enregistrer',
-              style: TextStyle(fontSize: 16),
+          : Text(
+              _isEditing ? 'Mettre à jour' : 'Créer',
+              style: const TextStyle(fontSize: 16),
             ),
     );
   }

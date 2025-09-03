@@ -65,34 +65,28 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
   List<Customer> _filterCustomers(List<Customer> customers, String query) {
     if (query.isEmpty) {
-      return customers
-          .where((c) => _showInactive || c.isActive)
-          .toList()
+      return customers.where((c) => _showInactive || c.isActive).toList()
         ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
     }
 
-    return customers
-        .where((customer) {
-          final matchesSearch = customer.name
-                  .toLowerCase()
-                  .contains(query.toLowerCase()) ||
-              (customer.email?.toLowerCase().contains(query.toLowerCase()) ??
-                  false) ||
-              (customer.phone?.contains(query) ?? false) ||
-              (customer.taxNumber
-                      ?.toLowerCase()
-                      .contains(query.toLowerCase()) ??
-                  false);
+    return customers.where((customer) {
+      final matchesSearch = customer.name
+              .toLowerCase()
+              .contains(query.toLowerCase()) ||
+          (customer.email?.toLowerCase().contains(query.toLowerCase()) ??
+              false) ||
+          (customer.phone?.contains(query) ?? false) ||
+          (customer.taxNumber?.toLowerCase().contains(query.toLowerCase()) ??
+              false);
 
-          return matchesSearch && (_showInactive || customer.isActive);
-        })
-        .toList()
+      return matchesSearch && (_showInactive || customer.isActive);
+    }).toList()
       ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
   }
 
   Future<void> _toggleCustomerStatus(Customer customer) async {
     try {
-      await _customerService.save(
+      await _customerService.update(
         customer.copyWith(
           isActive: !customer.isActive,
           // updatedAt: DateTime.now(),
@@ -102,7 +96,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur lors de la mise à jour du client: $e')),
+          SnackBar(
+              content: Text('Erreur lors de la mise à jour du client: $e')),
         );
       }
     }
@@ -114,7 +109,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
       builder: (context) => ConfirmationDialog(
         title: 'Supprimer le client',
         content:
-            'Êtes-vous sûr de vouloir supprimer définitivement ce client ? Cette action est irréversible.', confirmText: 'Supprimer',
+            'Êtes-vous sûr de vouloir supprimer définitivement ce client ? Cette action est irréversible.',
+        confirmText: 'Supprimer',
       ),
     );
 
@@ -127,9 +123,49 @@ class _CustomersScreenState extends State<CustomersScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erreur lors de la suppression du client: $e')),
+            SnackBar(
+                content: Text('Erreur lors de la suppression du client: $e')),
           );
         }
+      }
+    }
+  }
+
+  Future<void> _navigateToCustomerForm({Customer? customer}) async {
+    final result = await Navigator.push<dynamic>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CustomerFormScreen(customer: customer),
+      ),
+    );
+
+    // Refresh the list if:
+    // 1. A customer was returned (created/updated)
+    // 2. A boolean true was returned (deleted)
+    // 3. Any other truthy value was returned
+    if (result != null) {
+      await _loadCustomers();
+
+      // Show success message based on the operation
+      if (mounted) {
+        String message;
+        if (result is Customer) {
+          message = customer == null
+              ? 'Client créé avec succès'
+              : 'Client modifié avec succès';
+        } else if (result == true) {
+          message = 'Client supprimé avec succès';
+        } else {
+          message = 'Opération effectuée avec succès';
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
       }
     }
   }
@@ -174,7 +210,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   onPressed: () {
                     setState(() {
                       _showInactive = !_showInactive;
-                      _filteredCustomers = _filterCustomers(_customers, _searchQuery);
+                      _filteredCustomers =
+                          _filterCustomers(_customers, _searchQuery);
                     });
                   },
                   tooltip: _showInactive
@@ -191,37 +228,59 @@ class _CustomersScreenState extends State<CustomersScreen> {
               : _filteredCustomers.isEmpty
                   ? Expanded(
                       child: Center(
-                        child: Text(
-                          _searchQuery.isEmpty
-                              ? 'Aucun client trouvé'
-                              : 'Aucun client ne correspond à votre recherche',
-                          style: Theme.of(context).textTheme.titleMedium,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.people_outline,
+                              size: 64,
+                              color: Colors.grey[400],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              _searchQuery.isEmpty
+                                  ? 'Aucun client trouvé'
+                                  : 'Aucun client ne correspond à votre recherche',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    color: Colors.grey[600],
+                                  ),
+                            ),
+                            if (_searchQuery.isEmpty) ...[
+                              const SizedBox(height: 8),
+                              Text(
+                                'Appuyez sur + pour ajouter votre premier client',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      color: Colors.grey[500],
+                                    ),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                     )
                   : Expanded(
-                      child: ListView.builder(
-                        itemCount: _filteredCustomers.length,
-                        itemBuilder: (context, index) {
-                          final customer = _filteredCustomers[index];
-                          return _buildCustomerCard(customer);
-                        },
+                      child: RefreshIndicator(
+                        onRefresh: _loadCustomers,
+                        child: ListView.builder(
+                          itemCount: _filteredCustomers.length,
+                          itemBuilder: (context, index) {
+                            final customer = _filteredCustomers[index];
+                            return _buildCustomerCard(customer);
+                          },
+                        ),
                       ),
                     ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const CustomerFormScreen(),
-            ),
-          );
-          if (result == true) {
-            await _loadCustomers();
-          }
-        },
+        onPressed: () => _navigateToCustomerForm(),
+        tooltip: 'Ajouter un client',
         child: const Icon(Icons.add),
       ),
     );
@@ -233,11 +292,14 @@ class _CustomersScreenState extends State<CustomersScreen> {
       child: ListTile(
         title: Row(
           children: [
-            Text(
-              customer.name,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: customer.isActive ? null : Colors.grey,
+            Expanded(
+              child: Text(
+                customer.name,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: customer.isActive ? null : Colors.grey,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             if (!customer.isActive) ...[
@@ -263,18 +325,19 @@ class _CustomersScreenState extends State<CustomersScreen> {
           children: [
             if (customer.phone != null) Text('Tél: ${customer.phone}'),
             if (customer.email != null) Text('Email: ${customer.email}'),
+            if (customer.city != null) Text('Ville: ${customer.city}'),
             if (customer.creditLimit != null)
               Text(
                 'Limite de crédit: ${customer.creditLimit!.toStringAsFixed(2)} €',
                 style: const TextStyle(fontWeight: FontWeight.w500),
               ),
-            if (customer.currentCredit != null)
+            if (customer.currentCredit != null && customer.currentCredit != 0)
               Text(
                 'Crédit actuel: ${customer.currentCredit!.toStringAsFixed(2)} €',
                 style: TextStyle(
                   color: (customer.currentCredit ?? 0) < 0
                       ? Colors.red
-                      : Theme.of(context).textTheme.bodyMedium?.color,
+                      : Colors.green,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -284,15 +347,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
           onSelected: (value) async {
             switch (value) {
               case 'edit':
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => CustomerFormScreen(customer: customer),
-                  ),
-                );
-                if (result == true) {
-                  await _loadCustomers();
-                }
+                await _navigateToCustomerForm(customer: customer);
                 break;
               case 'toggle_status':
                 await _toggleCustomerStatus(customer);
@@ -341,17 +396,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
             ),
           ],
         ),
-        onTap: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CustomerFormScreen(customer: customer),
-            ),
-          );
-          if (result == true) {
-            await _loadCustomers();
-          }
-        },
+        onTap: () => _navigateToCustomerForm(customer: customer),
       ),
     );
   }

@@ -1,36 +1,81 @@
 import 'package:gestion_stock_epicerie/models/supplier.dart';
-import 'package:gestion_stock_epicerie/services/crud_service.dart';
+import 'package:gestion_stock_epicerie/services/api_service.dart';
 
-class SupplierService extends CrudService<Supplier> {
-  SupplierService()
-      : super(
-          collectionName: 'suppliers',
-          fromJson: (json) => Supplier.fromJson(json),
-        );
+class SupplierService {
+  final ApiService _apiService = ApiService();
+  final String _endpoint = 'suppliers';
 
-  // Récupérer les fournisseurs actifs
-  Future<List<Supplier>> getActiveSuppliers() async {
-    final suppliers = await getAll();
-    return suppliers.where((s) => s.isActive).toList()
-      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+  // Get all suppliers
+  Future<List<Supplier>> getAll() async {
+    try {
+      final response = await _apiService.get(_endpoint);
+      return (response as List).map((json) => Supplier.fromJson(json)).toList();
+    } catch (e) {
+      rethrow;
+    }
   }
 
-  // Rechercher des fournisseurs par nom ou informations de contact
+  // Get a supplier by ID
+  Future<Supplier> getById(String id) async {
+    try {
+      final response = await _apiService.get('$_endpoint/$id');
+      return Supplier.fromJson(response);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // Create a new supplier
+  Future<Supplier> save(Supplier supplier) async {
+    try {
+      final response = await _apiService.post(
+        _endpoint,
+        body: supplier.toJson(forCreation: true),
+      );
+      return Supplier.fromJson(response);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // Delete a supplier
+  Future<void> delete(String id) async {
+    try {
+      await _apiService.delete('$_endpoint/$id');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // Get active suppliers
+  Future<List<Supplier>> getActiveSuppliers() async {
+    try {
+      final suppliers = await getAll();
+      return suppliers.where((s) => s.isActive).toList()
+        ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // Search suppliers by name or contact information
   Future<List<Supplier>> searchSuppliers(String query) async {
     if (query.isEmpty) return getActiveSuppliers();
 
-    final lowercaseQuery = query.toLowerCase();
-    final suppliers = await getAll();
+    try {
+      final lowercaseQuery = query.toLowerCase();
+      final suppliers = await getAll();
 
-    return suppliers.where((supplier) {
-      return supplier.name.toLowerCase().contains(lowercaseQuery) ||
-          (supplier.email?.toLowerCase().contains(lowercaseQuery) ?? false) ||
-          (supplier.phone?.contains(query) ?? false) ||
-          (supplier.taxNumber?.toLowerCase().contains(lowercaseQuery) ??
-              false) ||
-          (supplier.notes?.toLowerCase().contains(lowercaseQuery) ?? false);
-    }).toList()
-      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+      return suppliers.where((supplier) {
+        return supplier.name.toLowerCase().contains(lowercaseQuery) ||
+            (supplier.email?.toLowerCase().contains(lowercaseQuery) ?? false) ||
+            (supplier.phone?.contains(query) ?? false) ||
+            (supplier.taxNumber?.contains(query) ?? false);
+      }).toList()
+        ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    } catch (e) {
+      rethrow;
+    }
   }
 
   // Désactiver un fournisseur (soft delete)
@@ -38,10 +83,7 @@ class SupplierService extends CrudService<Supplier> {
     try {
       final supplier = await getById(id);
       if (supplier != null) {
-        await save(supplier.copyWith(
-          isActive: false,
-          updatedAt: DateTime.now(),
-        ));
+        await save(supplier.copyWith(isActive: false));
       }
     } catch (e) {
       throw Exception('Erreur lors de la désactivation du fournisseur: $e');
@@ -53,10 +95,7 @@ class SupplierService extends CrudService<Supplier> {
     try {
       final supplier = await getById(id);
       if (supplier != null) {
-        await save(supplier.copyWith(
-          isActive: true,
-          updatedAt: DateTime.now(),
-        ));
+        await save(supplier.copyWith(isActive: true));
       }
     } catch (e) {
       throw Exception('Erreur lors de la réactivation du fournisseur: $e');
@@ -84,11 +123,17 @@ class SupplierService extends CrudService<Supplier> {
     return suppliers.take(limit).toList();
   }
 
-  // Mettre à jour les informations d'un fournisseur
+  // Update an existing supplier
   @override
-  Future<Supplier> update(Supplier item) async {
-    // Mettre à jour la date de mise à jour
-    final updatedItem = item.copyWith(updatedAt: DateTime.now());
-    return await save(updatedItem);
+  Future<Supplier> update(Supplier supplier) async {
+    try {
+      await _apiService.put(
+        '$_endpoint/${supplier.id}',
+        body: supplier.toJson(),
+      );
+      return supplier;
+    } catch (e) {
+      rethrow;
+    }
   }
 }
