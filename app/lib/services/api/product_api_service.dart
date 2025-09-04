@@ -1,3 +1,6 @@
+import 'dart:developer';
+
+import 'package:flutter/foundation.dart';
 import 'package:gestion_stock_epicerie/models/api_models/product_api_model.dart';
 import 'package:gestion_stock_epicerie/services/api_service.dart';
 
@@ -42,12 +45,32 @@ class ProductApiService {
   // Create a new product
   Future<ProductApiModel> createProduct(ProductApiModel product) async {
     try {
+      final productJson = product.toJson();
+      log('Creating product with data: $productJson');
+      
       final response = await _apiService.post(
         _basePath,
-        body: product.toJson(),
+        body: productJson,
       );
-      return ProductApiModel.fromJson(response);
-    } catch (e) {
+      
+      log('Received response: $response');
+      
+      // If response is null, return the original product with a success status
+      if (response == null) {
+        log('No response body received, assuming success and returning original product');
+        return product;
+      }
+      
+      // If response is a Map, use it to create the product
+      if (response is Map<String, dynamic>) {
+        return ProductApiModel.fromJson(response);
+      }
+      
+      // If we get here, the response is of an unexpected type
+      log('Unexpected response type: ${response.runtimeType}');
+      return product;
+    } catch (e, stackTrace) {
+      log('Error in createProduct', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -55,12 +78,32 @@ class ProductApiService {
   // Update an existing product
   Future<ProductApiModel> updateProduct(ProductApiModel product) async {
     try {
+      final productJson = product.toJson();
+      log('Updating product ${product.id} with data: $productJson');
+      
       final response = await _apiService.put(
         '$_basePath/${product.id}',
-        body: product.toJson(),
+        body: productJson,
       );
-      return ProductApiModel.fromJson(response);
-    } catch (e) {
+      
+      log('Received response: $response');
+      
+      // If response is null, return the original product with a success status
+      if (response == null) {
+        log('No response body received, assuming success and returning original product');
+        return product;
+      }
+      
+      // If response is a Map, use it to update the product
+      if (response is Map<String, dynamic>) {
+        return ProductApiModel.fromJson(response);
+      }
+      
+      // If we get here, the response is of an unexpected type
+      log('Unexpected response type: ${response.runtimeType}');
+      return product;
+    } catch (e, stackTrace) {
+      log('Error in updateProduct', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }

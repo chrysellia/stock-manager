@@ -366,33 +366,48 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
 
   void _saveProduct() {
     if (_formKey.currentState?.validate() ?? false) {
-      // If we're editing an existing product and no new image was selected,
-      // keep the existing image URL
-      String? imageUrl = widget.product?.imageUrl;
-      
-      // If a new image was selected, use its path
-      if (_selectedImage != null) {
-        imageUrl = _selectedImage!.path;
-      }
-      
-      final product = Product(
-        id: widget.product?.id,
-        name: _nameController.text.trim(),
-        description: _descriptionController.text.trim(),
-        price: double.parse(_priceController.text.replaceAll(',', '.')),
-        quantity: int.parse(_quantityController.text),
-        category: _selectedCategory ?? _categories.first,
-        imageUrl: imageUrl,
-        // barcode: _barcodeController.text.trim().isNotEmpty
-        //     ? _barcodeController.text.trim()
-        //     : null,
-        purchasePrice: _purchasePriceController.text.isNotEmpty
-            ? double.parse(_purchasePriceController.text.replaceAll(',', '.'))
-            : null,
-        alertThreshold: int.tryParse(_alertThresholdController.text) ?? 10,
-      );
+      try {
+        // If we're editing an existing product and no new image was selected,
+        // keep the existing image URL
+        String? imageUrl = widget.product?.imageUrl;
+        
+        // If a new image was selected, use its path
+        if (_selectedImage != null) {
+          imageUrl = _selectedImage!.path;
+        }
+        
+        // Helper function to parse double values safely
+        double? parseDouble(String? value) {
+          if (value == null || value.isEmpty) return null;
+          // Remove any non-numeric characters except decimal point and comma
+          final numericString = value.replaceAll(RegExp(r'[^0-9.,]'), '');
+          // Replace comma with dot for proper parsing
+          return double.tryParse(numericString.replaceAll(',', '.'));
+        }
+        
+        // Parse purchase price safely
+        final purchasePrice = parseDouble(_purchasePriceController.text);
+        
+        final product = Product(
+          id: widget.product?.id,
+          name: _nameController.text.trim(),
+          description: _descriptionController.text.trim(),
+          price: parseDouble(_priceController.text) ?? 0.0,
+          quantity: int.tryParse(_quantityController.text) ?? 0,
+          category: _selectedCategory ?? _categories.first,
+          imageUrl: imageUrl,
+          purchasePrice: purchasePrice ?? 0.0, // Ensure purchasePrice is never null
+          alertThreshold: int.tryParse(_alertThresholdController.text) ?? 10,
+        );
 
-      Navigator.of(context).pop(product);
+        if (!context.mounted) return;
+        Navigator.of(context).pop(product);
+      } catch (e) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur lors de la sauvegarde: ${e.toString()}')),
+        );
+      }
     }
   }
 }
