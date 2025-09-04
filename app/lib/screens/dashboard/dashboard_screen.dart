@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gestion_stock_epicerie/routes.dart';
 import 'package:gestion_stock_epicerie/screens/products/products_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:gestion_stock_epicerie/providers/auth_provider.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -47,6 +49,56 @@ class _DashboardScreenState extends State<DashboardScreen> {
               onPressed: () {
                 // TODO: Naviguer vers les notifications
               },
+            ),
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert),
+              onSelected: (value) async {
+                if (value == 'logout') {
+                  final shouldLogout = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Déconnexion'),
+                      content: const Text('Êtes-vous sûr de vouloir vous déconnecter ?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: const Text('Annuler'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.red,
+                          ),
+                          child: const Text('Se déconnecter'),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (shouldLogout == true && context.mounted) {
+                    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                    await authProvider.logout();
+                    if (context.mounted) {
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                        AppRoutes.login,
+                        (route) => false,
+                      );
+                    }
+                  }
+                }
+              },
+              itemBuilder: (BuildContext context) => [
+                const PopupMenuItem<String>(
+                  value: 'logout',
+                  child: Row(
+                    children: [
+                      Icon(Icons.logout, color: Colors.red),
+                      SizedBox(width: 8),
+                      Text('Déconnexion'),
+                    ],
+                  ),
+                ),
+              ],
             ),
             IconButton(
               icon: const Icon(Icons.settings_outlined),
