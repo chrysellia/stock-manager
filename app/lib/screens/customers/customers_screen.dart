@@ -328,12 +328,12 @@ class _CustomersScreenState extends State<CustomersScreen> {
             if (customer.city != null) Text('Ville: ${customer.city}'),
             if (customer.creditLimit != null)
               Text(
-                'Limite de crédit: ${customer.creditLimit!.toStringAsFixed(2)} €',
+                'Limite de crédit: ${customer.creditLimit!.toStringAsFixed(0)} MGA',
                 style: const TextStyle(fontWeight: FontWeight.w500),
               ),
             if (customer.currentCredit != null && customer.currentCredit != 0)
               Text(
-                'Crédit actuel: ${customer.currentCredit!.toStringAsFixed(2)} €',
+                'Crédit actuel: ${customer.currentCredit!.toStringAsFixed(0)} MGA',
                 style: TextStyle(
                   color: (customer.currentCredit ?? 0) < 0
                       ? Colors.red

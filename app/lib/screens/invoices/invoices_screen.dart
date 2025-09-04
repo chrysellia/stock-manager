@@ -327,7 +327,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
         children: [
           _buildStatCard(
             'CA (${DateFormat('MMM', 'fr_FR').format(now)})',
-            '${paidThisMonth.toStringAsFixed(2)} €',
+            '${paidThisMonth.toStringAsFixed(0)} MGA',
             Icons.euro,
           ),
           const SizedBox(width: 8),
@@ -521,7 +521,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   Text(
-                    '${invoice.total.toStringAsFixed(2)} €',
+                    '${invoice.total.toStringAsFixed(0)} MGA',
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,

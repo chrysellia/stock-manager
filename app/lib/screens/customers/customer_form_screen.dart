@@ -460,7 +460,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
             TextFormField(
               controller: _creditLimitController,
               decoration: const InputDecoration(
-                labelText: 'Limite de crédit (€)',
+                labelText: 'Limite de crédit (MGA)',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.euro),
               ),

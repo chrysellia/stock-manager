@@ -324,7 +324,7 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
                                     child: Row(
                                       children: [
                                         Text(
-                                          '${product['price']?.toStringAsFixed(2) ?? '0.00'} €',
+                                          '${product['price']?.toStringAsFixed(0) ?? '0'} MGA',
                                           style: TextStyle(
                                             color:
                                                 isAlreadyAdded || isOutOfStock

@@ -206,7 +206,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         _buildStatCard(
           title: 'Ventes du jour',
-          value: '1,250 €',
+          value: '1,250 MGA',
           icon: Icons.euro_symbol_outlined,
           color: Colors.green,
         ),
@@ -383,7 +383,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final activities = [
       {
         'title': 'Nouvelle vente enregistrée',
-        'subtitle': 'Commande #4587 - 125,50 €',
+        'subtitle': 'Commande #4587 - 312,500 MGA',
         'time': 'Il y a 5 min',
         'icon': Icons.payment_outlined,
         'color': Colors.green,

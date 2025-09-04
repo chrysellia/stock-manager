@@ -230,7 +230,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                   Text('Catégorie: ${product.category}'),
                                   Text('Quantité: ${product.quantity}'),
                                   Text(
-                                    '${product.price.toStringAsFixed(2)} €',
+                                    '${product.price.toStringAsFixed(0)} MGA',
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: Colors.green,

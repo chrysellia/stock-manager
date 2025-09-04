@@ -388,7 +388,7 @@ class _InvoiceFormScreenState extends State<InvoiceFormScreen> {
                       ),
                       decoration: const InputDecoration(
                         labelText: 'Montant total',
-                        prefixText: '€ ',
+                        prefixText: 'MGA ',
                         border: OutlineInputBorder(),
                       ),
                       readOnly: true,

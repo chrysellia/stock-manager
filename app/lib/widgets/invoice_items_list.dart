@@ -130,7 +130,7 @@ class _InvoiceItemsListState extends State<InvoiceItemsList> {
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               Text(
-                '${_totalAmount.toStringAsFixed(2)} €',
+                '${_totalAmount.toStringAsFixed(0)} MGA',
                 style:
                     const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
@@ -204,7 +204,7 @@ class _InvoiceItemRow extends StatelessWidget {
                     decoration: const InputDecoration(
                       labelText: 'Prix unitaire',
                       border: OutlineInputBorder(),
-                      prefixText: '€ ',
+                      prefixText: 'MGA ',
                       isDense: true,
                     ),
                     keyboardType: TextInputType.number,
@@ -217,7 +217,7 @@ class _InvoiceItemRow extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Subtotal: ${(item.quantity * item.unitPrice).toStringAsFixed(2)} €',
+                    'Sous-total: ${(item.quantity * item.unitPrice).toStringAsFixed(0)} MGA',
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,

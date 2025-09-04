@@ -206,7 +206,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(
                           labelText: 'Prix de vente *',
-                          prefixText: '€ ',
+                          prefixText: 'MGA ',
                           border: OutlineInputBorder(),
                         ),
                         validator: (value) {
@@ -267,7 +267,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(
                           labelText: 'Prix d\'achat',
-                          prefixText: '€ ',
+                          prefixText: 'MGA ',
                           border: OutlineInputBorder(),
                         ),
                       ),
