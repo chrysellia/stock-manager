@@ -3,6 +3,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:gestion_stock_epicerie/routes.dart';
 import 'package:gestion_stock_epicerie/theme/app_theme.dart';
+import 'package:provider/provider.dart';
+import 'package:gestion_stock_epicerie/providers/auth_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -30,15 +32,37 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _isLoading = true);
 
-    // Simuler un délai de connexion
-    await Future.delayed(const Duration(seconds: 2));
-
-    setState(() => _isLoading = false);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final success = await authProvider.login(
+      _emailController.text.trim(),
+      _passwordController.text,
+    );
 
     if (mounted) {
-      // Naviguer vers le tableau de bord
-      Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
+      setState(() => _isLoading = false);
+      
+      if (success) {
+        Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
+      } else {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(authProvider.error ?? 'Échec de la connexion'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Clear any previous errors when the screen is loaded
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      authProvider.clearError();
+    });
   }
 
   @override
