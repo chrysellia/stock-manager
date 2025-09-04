@@ -21,9 +21,18 @@ class ProductApiService {
   }
 
   // Get all products with full details
-  Future<List<ProductApiModel>> getProducts() async {
+  Future<List<ProductApiModel>> getProducts({
+    String sortBy = 'name',
+    bool descending = false,
+  }) async {
     try {
-      final response = await _apiService.get(_basePath);
+      final response = await _apiService.get(
+        _basePath,
+        queryParams: {
+          'sortBy': sortBy,
+          'descending': descending.toString(),
+        },
+      );
       return (response as List)
           .map((json) => ProductApiModel.fromJson(json))
           .toList();

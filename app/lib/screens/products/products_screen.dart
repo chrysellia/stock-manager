@@ -14,6 +14,19 @@ class _ProductsScreenState extends State<ProductsScreen> {
   final ProductService _productService = ProductService();
   final TextEditingController _searchController = TextEditingController();
 
+  // Sorting options
+  final Map<String, String> _sortOptions = {
+    'name': 'Nom (A-Z)',
+    'name_desc': 'Nom (Z-A)',
+    'price': 'Prix (croissant)',
+    'price_desc': 'Prix (décroissant)',
+    'quantity': 'Quantité (croissante)',
+    'quantity_desc': 'Quantité (décroissante)',
+    'createdAt': 'Date d\'ajout (plus ancien)',
+    'createdAt_desc': 'Date d\'ajout (récent)',
+  };
+  String _currentSort = 'name';
+  
   List<Product> _products = [];
   List<Product> _filteredProducts = [];
   bool _isLoading = true;
@@ -36,7 +49,17 @@ class _ProductsScreenState extends State<ProductsScreen> {
   Future<void> _loadProducts() async {
     setState(() => _isLoading = true);
     try {
-      final products = await _productService.getAll();
+      // Parse sort parameters
+      final sortBy = _currentSort.endsWith('_desc') 
+          ? _currentSort.substring(0, _currentSort.length - 5) 
+          : _currentSort;
+      final descending = _currentSort.endsWith('_desc');
+      
+      final products = await _productService.getAll(
+        sortBy: sortBy,
+        descending: descending,
+      );
+      
       setState(() {
         _products = products;
         _filteredProducts = _filterProducts(products, _searchQuery);
@@ -158,6 +181,30 @@ class _ProductsScreenState extends State<ProductsScreen> {
       appBar: AppBar(
         title: const Text('Gestion des produits'),
         actions: [
+          // Sort dropdown
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: DropdownButton<String>(
+              value: _currentSort,
+              icon: const Icon(Icons.sort, color: Colors.white),
+              dropdownColor: Theme.of(context).colorScheme.surface,
+              underline: const SizedBox(),
+              items: _sortOptions.entries.map((entry) {
+                return DropdownMenuItem<String>(
+                  value: entry.key,
+                  child: Text(entry.value),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                if (newValue != null && newValue != _currentSort) {
+                  setState(() {
+                    _currentSort = newValue;
+                    _loadProducts();
+                  });
+                }
+              },
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadProducts,

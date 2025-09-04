@@ -48,9 +48,23 @@ namespace api.Controllers
 
         // GET: api/Products
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
+        public async Task<ActionResult<IEnumerable<Product>>> GetProducts(
+            [FromQuery] string sortBy = "name",
+            [FromQuery] bool descending = false)
         {
-            return await _context.Products.ToListAsync();
+            IQueryable<Product> query = _context.Products;
+
+            query = sortBy.ToLower() switch
+            {
+                "name" => descending ? query.OrderByDescending(p => p.Name) : query.OrderBy(p => p.Name),
+                "price" => descending ? query.OrderByDescending(p => p.Price) : query.OrderBy(p => p.Price),
+                "quantity" => descending ? query.OrderByDescending(p => p.Quantity) : query.OrderBy(p => p.Quantity),
+                "createdat" => descending ? query.OrderByDescending(p => p.CreatedAt) : query.OrderBy(p => p.CreatedAt),
+                "updatedat" => descending ? query.OrderByDescending(p => p.UpdatedAt) : query.OrderBy(p => p.UpdatedAt),
+                _ => query.OrderBy(p => p.Name) // Default sorting by name
+            };
+
+            return await query.ToListAsync();
         }
 
         // GET: api/Products/5

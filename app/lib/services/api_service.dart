@@ -110,27 +110,37 @@ class ApiService with ChangeNotifier {
   }
 
   // Helper method to handle GET requests
-  Future<dynamic> get(String endpoint, {bool requiresAuth = true}) async {
-    // Ensure tokens are loaded
+  Future<dynamic> get(String endpoint, {
+    bool requiresAuth = true,
+    Map<String, dynamic>? queryParams,
+  }) async {
+    // Load tokens if not already loaded
     if (_token == null) {
       await loadTokens();
     }
 
     // Prepare headers
-    final headers = <String, String>{
-      'Content-Type': 'application/json',
-    };
+    final headers = <String, String>{};
 
     // Add auth header if required
     if (requiresAuth && _token != null) {
       headers['Authorization'] = 'Bearer $_token';
     }
 
+    // Build the URI with query parameters if provided
+    final uri = queryParams != null && queryParams.isNotEmpty
+        ? Uri.parse('$baseUrl/$endpoint').replace(
+            queryParameters: queryParams.map(
+              (key, value) => MapEntry(key, value.toString()),
+            ),
+          )
+        : Uri.parse('$baseUrl/$endpoint');
+
     // Make the request with retry logic
     final response = await _retryRequest(
       () => http
           .get(
-            Uri.parse('$baseUrl/$endpoint'),
+            uri,
             headers: headers,
           )
           .timeout(timeout),

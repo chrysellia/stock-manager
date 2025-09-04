@@ -10,12 +10,20 @@ class ProductService {
 
   /// Retrieves all products from the API
   /// 
+  /// [sortBy] The field to sort by (name, price, quantity, createdAt, updatedAt)
+  /// [descending] Whether to sort in descending order
   /// Returns a list of [Product] objects
   /// 
   /// Throws an exception if the API call fails
-  Future<List<Product>> getAll() async {
+  Future<List<Product>> getAll({
+    String sortBy = 'name',
+    bool descending = false,
+  }) async {
     try {
-      final apiProducts = await _apiService.getProducts();
+      final apiProducts = await _apiService.getProducts(
+        sortBy: sortBy,
+        descending: descending,
+      );
       return apiProducts.map((apiProduct) => Product(
         id: apiProduct.id,
         name: apiProduct.name,
