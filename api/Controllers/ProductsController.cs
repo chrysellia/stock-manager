@@ -32,6 +32,7 @@ namespace api.Controllers
                         p.Id,
                         p.Name,
                         p.Price,
+                        p.PurchasePrice,
                         p.Quantity
                     })
                     .ToListAsync();

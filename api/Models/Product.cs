@@ -18,6 +18,7 @@ namespace api.Models
         public string? Category { get; set; }
         public string? Description { get; set; }
         public string? ImageUrl { get; set; }
+        public decimal? PurchasePrice { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
     }
