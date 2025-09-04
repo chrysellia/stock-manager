@@ -103,15 +103,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _buildQuickActions(context),
           const SizedBox(height: 24),
 
-          // Dernières activités
-          Text(
-            'Dernières activités',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          const SizedBox(height: 16),
-          _buildRecentActivities(),
+          // // Dernières activités
+          // Text(
+          //   'Dernières activités',
+          //   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+          //         fontWeight: FontWeight.bold,
+          //       ),
+          // ),
+          // const SizedBox(height: 16),
+          // _buildRecentActivities(),
         ],
       ),
     );
