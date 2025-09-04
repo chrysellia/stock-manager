@@ -14,13 +14,25 @@ namespace api.Services
         private readonly IConfiguration _configuration;
         private readonly SymmetricSecurityKey _key;
         private readonly JwtSecurityTokenHandler _tokenHandler;
+        private readonly TokenValidationParameters _tokenValidationParameters;
 
         public JwtService(IConfiguration configuration)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            var jwtSettings = _configuration.GetSection("JwtSettings");
-            var secret = jwtSettings["Secret"] ?? throw new InvalidOperationException("JWT Secret is not configured");
+            var jwtSettings = _configuration.GetSection("Jwt");
+            var secret = jwtSettings["Key"] ?? throw new InvalidOperationException("JWT Key is not configured in appsettings.json");
             _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+            _tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = _key,
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidIssuer = jwtSettings["Issuer"],
+                ValidAudience = jwtSettings["Audience"],
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            };
             _tokenHandler = new JwtSecurityTokenHandler();
         }
 
@@ -28,9 +40,8 @@ namespace api.Services
         {
             if (user == null) throw new ArgumentNullException(nameof(user));
 
-            var jwtSettings = _configuration.GetSection("JwtSettings");
-            var issuer = jwtSettings["Issuer"] ?? throw new InvalidOperationException("JWT Issuer is not configured");
-            var audience = jwtSettings["Audience"] ?? throw new InvalidOperationException("JWT Audience is not configured");
+            var jwtSettings = _configuration.GetSection("Jwt");
+            var expiresInMinutes = Convert.ToDouble(jwtSettings["ExpireMinutes"] ?? "60");
             
             var claims = new List<Claim>
             {
@@ -50,9 +61,9 @@ namespace api.Services
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddMinutes(Convert.ToDouble(jwtSettings["TokenLifetimeMinutes"] ?? "15")),
-                Issuer = issuer,
-                Audience = audience,
+                Expires = DateTime.UtcNow.AddMinutes(expiresInMinutes),
+                Issuer = _tokenValidationParameters.ValidIssuer,
+                Audience = _tokenValidationParameters.ValidAudience,
                 SigningCredentials = new SigningCredentials(_key, SecurityAlgorithms.HmacSha256Signature)
             };
 
@@ -73,18 +84,20 @@ namespace api.Services
             if (string.IsNullOrEmpty(token))
                 return null;
 
-            var jwtSettings = _configuration.GetSection("JwtSettings");
-            var tokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateAudience = false,
-                ValidateIssuer = false,
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = _key,
-                ValidateLifetime = false // We want to allow expired tokens for refresh
-            };
-
             try
             {
+                // Create a copy of the validation parameters and disable lifetime validation
+                var tokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = _tokenValidationParameters.ValidateIssuerSigningKey,
+                    IssuerSigningKey = _tokenValidationParameters.IssuerSigningKey,
+                    ValidateIssuer = _tokenValidationParameters.ValidateIssuer,
+                    ValidateAudience = _tokenValidationParameters.ValidateAudience,
+                    ValidIssuer = _tokenValidationParameters.ValidIssuer,
+                    ValidAudience = _tokenValidationParameters.ValidAudience,
+                    ValidateLifetime = false // We want to allow expired tokens for refresh
+                };
+
                 var principal = _tokenHandler.ValidateToken(token, tokenValidationParameters, out var securityToken);
                 if (securityToken is not JwtSecurityToken jwtSecurityToken || 
                     !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
